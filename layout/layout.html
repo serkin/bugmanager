@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title><?php echo $i18n['layout']['title']; ?></title>
+
+        <style>
+            html {
+                margin: 0;
+                padding: 0;
+            }
+            table {
+                border: #cecece 1px solid;
+            }
+            
+            .selected_project {
+                background-color: #cecece;
+            }
+            #status_field {
+                height: 30px;
+                padding: 5px;
+                margin: 5px;
+            }
+            #status_field p {
+                padding: 10px;
+                font-size: 14pt;
+            }
+            #codesBlock {
+                margin-top: 10px;
+            }
+            #newTranslationButton {
+                margin-bottom: 10px;
+            }
+            #searchKeyword {
+                display: none;
+            }
+        </style>
+        <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/0.8.1/mustache.min.js"></script>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+    </head>
+    <body onLoad="projects.reload()">
+
+        <div class="row">
+            <div class="col-md-8">
+                <h4><?php echo $i18n['layout']['title']; ?></h4>
+            </div>
+            <div class="col-md-3">
+                <div id="status_field">&nbsp;</div>
+            </div>
+            <div class="col-md-12">
+                <hr>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-1"></div>
+            <div class="col-md-3">
+                <div id="projectsBlock"></div>
+
+                <script id="projectsTemplate" type="x-tmpl-mustache">
+                    <table class="table table-condensed">
+                        <thead>
+                            <th>#</th>
+                            <th><?php echo $i18n['layout']['name']; ?></th>
+                            <th><?php echo $i18n['layout']['export']; ?></th>
+                            <th><?php echo $i18n['layout']['manage']; ?></th>
+                        </thead>
+                        <tbody>
+                            {{#projects}}
+                                <tr OnClick="projects.selectProjectById({{id_project}})" class="project_block" id="project_block_{{id_project}}">
+                                    <td>{{id_project}}</td>
+                                    <td>{{name}}</td>
+                                    <td>
+                                        <button class="btn btn-info btn-xs" OnClick="projects.export({{id_project}},'php', event)">php</button>
+                                        &nbsp;
+                                        <button class="btn btn-info btn-xs" OnClick="projects.export({{id_project}},'yaml', event)">yaml</button>
+                                    </td>
+                                    <td><button class="btn btn-danger btn-xs" OnClick="projects.deleteProject({{id_project}})"><?php echo $i18n['layout']['delete']; ?></button></td>
+                                </tr>
+                            {{/projects}}
+                                    
+                            {{^projects}}
+                                <tr>
+                                    <td colspan="4">{{i18n.no_projects}}</td>
+                                </tr>
+                            {{/projects}}
+                            
+                        </tbody>
+                    </table>
+                </script>
+
+                <h3><?php echo $i18n['layout']['add_project']; ?></h3>
+                <hr>
+                <div id="projectFormBlock"></div>
+                <script id="projectFormTemplate" type="x-tmpl-mustache">
+                    <form id="projectForm" class="form-horizontal">
+                        {{#id_project}}
+                            <input type="hidden" name="id_project" value="{{id_project}}">
+                        {{/id_project}}
+            
+                    <div class="form-group">
+                        <label class="col-sm-6 control-label"><?php echo $i18n['layout']['name']; ?></label>
+                        <div class="col-sm-6">
+                            <input class="form-control input-sm" type="text" name="name" value="{{name}}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-6 control-label"><?php echo $i18n['layout']['languages']; ?></label>
+                        <div class="col-sm-6">
+                            <input class="form-control" type="text" name="languages" value="{{languages}}" placeholder="en,ru,de">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-6 control-label"><?php echo $i18n['layout']['path']; ?></label>
+                        <div class="col-sm-6">
+                            <input class="form-control" type="text" name="path" value="{{path}}" placeholder="./">
+                        </div>
+                    </div>
+                    <button type="button" onclick="projects.ProjectForm.save()" class="btn btn-success"><?php echo $i18n['layout']['save']; ?></button>
+                    <button type="reset" onclick="projects.ProjectForm.render()" class="btn btn-default"><?php echo $i18n['layout']['clear']; ?></button>
+                </form>
+                </script>
+
+            </div>
+            <div class="col-md-1"></div>
+            <div class="col-md-2">
+                <input type="text" class="form-control" id="searchKeyword" onkeyup="codes.SearchField.find($(this).val())" placeholder="<?php echo $i18n['layout']['code_placeholder']; ?>">
+                <div id="codesBlock"></div>
+                <script id="codesTemplate" type="x-tmpl-mustache">
+                    <table class="table table-condensed">
+                        <thead>
+                            <th><?php echo $i18n['layout']['code']; ?></th>
+                            <th><?php echo $i18n['layout']['manage']; ?></th>
+                        </thead>
+                        <tbody>
+                            {{#codes}}
+                                <tr OnClick="codes.selectCode('{{code}}', $(this))" class="code_block">
+                                    <td>{{code}}</td>
+                                    <td><button class="btn btn-danger btn-xs" OnClick="codes.deleteCode('{{code}}', $('#searchKeyword').val())"><?php echo $i18n['layout']['delete']; ?></button></td>
+                                </tr>
+                            {{/codes}}
+                        </tbody>
+                    </table>
+                </script>
+
+            </div>
+            <div class="col-md-1"></div>
+            <div class="col-md-4">
+                <div id="translationFormBlock"></div>
+                <script id="translationFormTemplate" type="x-tmpl-mustache">
+                    {{#id_project}}
+                        <div id="newTranslationButton">
+                            <button type="button" onclick="translation.render()" class="btn btn-default"><?php echo $i18n['layout']['new_translation']; ?></button>
+                        </div>
+
+                        <form id="translationForm" class="form-horizontal">
+                            <input type="hidden" name="id_project" value="{{id_project}}">
+
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label"><?php echo $i18n['layout']['code']; ?>:</label>
+                                <div class="col-sm-6">
+                                    <input class="form-control" type="text" name="code" id="code" value="{{code}}" required>
+                                </div>
+                            </div>
+
+                            {{#translations}}
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">{{language}}:</label>
+                                    <div class="col-sm-6">
+                                        <textarea class="form-control"  name="translation[{{language}}]">{{translation}}</textarea>
+                                    </div>
+                                </div>
+                            {{/translations}}
+
+                            <button type="button" onclick="translation.save($('#code').val())" class="btn btn-success"><?php echo $i18n['layout']['save']; ?></button>
+
+                        </form>
+                    {{/id_project}}
+                </script>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-12">
+                <hr>
+            </div>
+        </div>
+        <div class="row">
+
+            <div class="col-md-10">
+                &nbsp;
+            </div>
+            <div class="col-md-2">
+                <a href="https://github.com/serkin/foler" target="_blank">github</a>
+            </div>
+
+        </div>
+        <script>
+            url = '<?php echo $app["config"]["url"]; ?>';
+        </script>
+
+        <!-- Here goes content from all js/*.js files -->
+        { js }
+        <!-- /end -->
+
+    </body>
+</html>
