@@ -3,7 +3,7 @@
 /**
  * @author Serkin Alexander <serkin.alexander@gmail.com>
  */
-class Foler {
+class Bugmanager {
 
     
     /**
@@ -30,11 +30,6 @@ class Foler {
      */
     protected $dbPassword;
 
-    /**
-     *
-     * @var string
-     */
-    protected $error;
 
     /**
      * 
@@ -81,26 +76,6 @@ class Foler {
         return $sth->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Gets all codes from project
-     * 
-     * @param integer $idProject
-     * @param string $keyword
-     * @return array
-     */
-    public function getAllCodes($idProject, $keyword = null)
-    {
-
-        $sth = $this->dbh->prepare('SELECT DISTINCT (`code`) FROM `translation` WHERE `id_project` = ? and `code` like ?');
-
-        $keyword = !is_null($keyword) ? "%$keyword%" : '';
-
-        $sth->bindParam(1, $idProject, PDO::PARAM_INT);
-        $sth->bindParam(2, $keyword, PDO::PARAM_STR);
-        $sth->execute();
-
-        return $sth->fetchAll(PDO::FETCH_ASSOC);
-    }
 
     /**
      * Gets translation according with given code and idProject or all records
@@ -109,7 +84,7 @@ class Foler {
      * @param string $code
      * @return array
      */
-    public function getTranslation($idProject, $code = null){
+    public function getIssue($idIssue){/*
 
         $languages = $this->getLanguagesFromProject($idProject);
 
@@ -126,24 +101,24 @@ class Foler {
             );
         endforeach;
 
-        return $returnValue;      
+        return $returnValue;   */   
 
     }
     
-    public function getAllTranslationsFromProject($idProject)
-    {
+    public function getAllIssuesFromProject($idProject)
+    {/*
         
         $sth = $this->dbh->prepare('SELECT * FROM `translation` WHERE `id_project` = ?');
         $sth->bindParam(1, $idProject, PDO::PARAM_INT);
         $sth->execute();
 
-        return $sth->fetchAll(PDO::FETCH_ASSOC);
+        return $sth->fetchAll(PDO::FETCH_ASSOC);*/
 
     }
 
 
-    private function getCodeTranslation($idProject, $code)
-    {
+    private function getAllReleasesFromProject($idProject)
+    {/*
         $returnValue = array();
  
         $sth = $this->dbh->prepare('SELECT * FROM `translation` WHERE `id_project` = ? and `code` = ?');
@@ -156,7 +131,7 @@ class Foler {
             $returnValue[$record['language']] = $record['translation'];
         endforeach;
 
-        return $returnValue;
+        return $returnValue;*/
     }
 
     /**
@@ -172,17 +147,6 @@ class Foler {
         $sth->execute();
         return $sth->fetch(PDO::FETCH_ASSOC);
     }
-    
-    public function getProjectIdByCodeId($idCode)
-    {
-        $sth = $this->dbh->prepare("SELECT `id_project` FROM `code` WHERE `id_code` = ?");
-        $sth->bindParam(1, $idCode, PDO::PARAM_INT);
-        $sth->execute();
-        $arr = $sth->fetch(PDO::FETCH_ASSOC);
-        
-        return $arr['id_project'];
-        
-    }
 
 
     /**
@@ -194,7 +158,8 @@ class Foler {
      * @param integer $idProject
      * @return int|boolean False on error
      */
-    public function saveProject($arr, $idProject = null){
+    public function saveProject($arr, $idProject = null)
+    {/*
 
         if(is_null($idProject)):
             $sth = $this->dbh->prepare('INSERT INTO `project` (`name`, `path`, `languages`) VALUES(?, ?, ?)');
@@ -215,7 +180,7 @@ class Foler {
             $returnValue = $idProject;
         endif;
 
-        return $returnValue;
+        return $returnValue;*/
 
     }
     
@@ -233,6 +198,8 @@ class Foler {
     }
 
 
+    
+    public function saveRelease($arr, $idRelease = null){}
     /**
      * 
      * @param integer $idProject
@@ -241,9 +208,9 @@ class Foler {
      * 
      * @return boolean
      */
-    public function saveTranslation($idProject, $code, $arr)
+    public function saveIssue($arr, $idIssue = null)
     {
-        
+        /*
 
         $languages = $this->getLanguagesFromProject($idProject);
 
@@ -267,7 +234,7 @@ class Foler {
             endif;
         endforeach;
 
-        return true;
+        return true;*/
     }
     
     /**
@@ -276,27 +243,18 @@ class Foler {
      * 
      * @return boolean
      */
-    public function deleteCode($idProject, $code)
-    {
+    public function deleteIssue($idIssue)
+    {/*
         $sth = $this->dbh->prepare('DELETE FROM `translation` WHERE `code` = ? and `id_project` = ?');
 
         $sth->bindParam(1, $code,       PDO::PARAM_STR);
         $sth->bindParam(2, $idProject,  PDO::PARAM_INT);
  
         return $sth->execute();
+     * 
+     */
     }
     
+    public function deleteRelease($idRelease){}
     
-    public function getLanguagesFromProject($idProject){
-
-        $returnValue = array();
-
-        $data = $this->getProjectById($idProject);
-        
-        if(!empty($data['languages'])):
-            $returnValue = explode(",", $data['languages']);
-        endif;        
-
-        return $returnValue;
-    }
 }
