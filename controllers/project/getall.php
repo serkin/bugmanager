@@ -2,7 +2,7 @@
 
 $app['controllers']['project/getall'] = function ($app, $request){
     
-    $projects = $app['foler']->getAllProjects();
+    $projects = $app['bugmanager']->getAllProjects();
     Response::responseWithSuccess(array('projects' => $projects));
     
 };

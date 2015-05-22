@@ -1,10 +1,10 @@
 <?php
 
 
-$app['foler'] = new Foler($app['config']['db']['dsn'], $app['config']['db']['user'], $app['config']['db']['password'], $app['i18n']);
+$app['bugmanager'] = new Bugmanager($app['config']['db']['dsn'], $app['config']['db']['user'], $app['config']['db']['password'], $app['i18n']);
 
 try {
-    $app['foler']->connect();
+    $app['bugmanager']->connect();
 } catch (Exception $exc){
     Response::responseWithError($exc->getMessage());
 }
