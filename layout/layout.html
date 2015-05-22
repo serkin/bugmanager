@@ -63,7 +63,6 @@
                         <thead>
                             <th>#</th>
                             <th><?php echo $i18n['layout']['name']; ?></th>
-                            <th><?php echo $i18n['layout']['export']; ?></th>
                             <th><?php echo $i18n['layout']['manage']; ?></th>
                         </thead>
                         <tbody>
@@ -71,11 +70,6 @@
                                 <tr OnClick="projects.selectProjectById({{id_project}})" class="project_block" id="project_block_{{id_project}}">
                                     <td>{{id_project}}</td>
                                     <td>{{name}}</td>
-                                    <td>
-                                        <button class="btn btn-info btn-xs" OnClick="projects.export({{id_project}},'php', event)">php</button>
-                                        &nbsp;
-                                        <button class="btn btn-info btn-xs" OnClick="projects.export({{id_project}},'yaml', event)">yaml</button>
-                                    </td>
                                     <td><button class="btn btn-danger btn-xs" OnClick="projects.deleteProject({{id_project}})"><?php echo $i18n['layout']['delete']; ?></button></td>
                                 </tr>
                             {{/projects}}
@@ -105,18 +99,6 @@
                             <input class="form-control input-sm" type="text" name="name" value="{{name}}">
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label class="col-sm-6 control-label"><?php echo $i18n['layout']['languages']; ?></label>
-                        <div class="col-sm-6">
-                            <input class="form-control" type="text" name="languages" value="{{languages}}" placeholder="en,ru,de">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-sm-6 control-label"><?php echo $i18n['layout']['path']; ?></label>
-                        <div class="col-sm-6">
-                            <input class="form-control" type="text" name="path" value="{{path}}" placeholder="./">
-                        </div>
-                    </div>
                     <button type="button" onclick="projects.ProjectForm.save()" class="btn btn-success"><?php echo $i18n['layout']['save']; ?></button>
                     <button type="reset" onclick="projects.ProjectForm.render()" class="btn btn-default"><?php echo $i18n['layout']['clear']; ?></button>
                 </form>
@@ -125,7 +107,10 @@
             </div>
             <div class="col-md-1"></div>
             <div class="col-md-2">
-                <input type="text" class="form-control" id="searchKeyword" onkeyup="codes.SearchField.find($(this).val())" placeholder="<?php echo $i18n['layout']['code_placeholder']; ?>">
+                <input type="text" class="form-control"
+                       id="searchKeyword"
+                       onkeyup="codes.SearchField.find($(this).val())"
+                       placeholder="<?php echo $i18n['layout']['issue_search_placeholder']; ?>">
                 <div id="codesBlock"></div>
                 <script id="codesTemplate" type="x-tmpl-mustache">
                     <table class="table table-condensed">
