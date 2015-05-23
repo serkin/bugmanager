@@ -30,7 +30,7 @@ var projects = {
         idSelectedProject = parseInt(idProject);
         projects.ProjectForm.render(idSelectedProject);
 
-        //translation.render();
+        issues.render();
         //codes.SearchField.show();
 
     },
@@ -40,7 +40,7 @@ var projects = {
         });
         ev.stopPropagation();
     },
-    
+
     
     ProjectForm: {
         save: function(){

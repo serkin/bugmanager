@@ -134,13 +134,14 @@ class Bugmanager {
     }
     
     public function getAllIssuesFromProject($idProject)
-    {/*
-        
-        $sth = $this->dbh->prepare('SELECT * FROM `translation` WHERE `id_project` = ?');
-        $sth->bindParam(1, $idProject, PDO::PARAM_INT);
+    {
+
+        $sth = $this->dbh->prepare("SELECT * FROM `issue` WHERE `id_project` = ? and `status` = 'open'");
+        $sth->bindParam(1, $idProject,  PDO::PARAM_INT);
+        //$sth->bindParam(2, 'open',      PDO::PARAM_STR);
         $sth->execute();
 
-        return $sth->fetchAll(PDO::FETCH_ASSOC);*/
+        return $sth->fetchAll(PDO::FETCH_ASSOC);
 
     }
 
@@ -336,6 +337,7 @@ $app['i18n']['en'] = array(
     'layout' => array(
         'title'             => 'Bugmanager',
         'name'              => 'Name',
+        'description'              => 'Description',
         'manage'            => 'Manage',
         'clear'             => 'Clear',
         'add_project'       => 'Add/edit project',
@@ -353,6 +355,22 @@ $app['i18n']['en'] = array(
         'empty_project_name' => 'Project name not specified',
     )
 );
+
+// Source: controllers/issue/getall.php
+
+
+$app['controllers']['issue/getall'] = function ($app, $request){
+
+    $idProject = !empty($request['id_project']) ? (int)$request['id_project'] : null;
+
+    if(!is_null($idProject)):
+        $issues = $app['bugmanager']->getAllIssuesFromProject($idProject);
+        Response::responseWithSuccess(array('issues' => $issues));
+    else:
+        Response::responseWithError($app['i18n']['errors']['empty_id_project']);
+    endif;
+
+};
 
 // Source: controllers/issue/getone.php
 
@@ -670,20 +688,20 @@ endif;
                        id="searchKeyword"
                        onkeyup="codes.SearchField.find($(this).val())"
                        placeholder="<?php echo $i18n['layout']['issue_search_placeholder']; ?>">
-                <div id="codesBlock"></div>
-                <script id="codesTemplate" type="x-tmpl-mustache">
+                <div id="issuesBlock"></div>
+                <script id="issuesTemplate" type="x-tmpl-mustache">
                     <table class="table table-condensed">
                         <thead>
-                            <th><?php echo $i18n['layout']['code']; ?></th>
+                            <th><?php echo $i18n['layout']['description']; ?></th>
                             <th><?php echo $i18n['layout']['manage']; ?></th>
                         </thead>
                         <tbody>
-                            {{#codes}}
-                                <tr OnClick="codes.selectCode('{{code}}', $(this))" class="code_block">
-                                    <td>{{code}}</td>
-                                    <td><button class="btn btn-danger btn-xs" OnClick="codes.deleteCode('{{code}}', $('#searchKeyword').val())"><?php echo $i18n['layout']['delete']; ?></button></td>
+                            {{#issues}}
+                                <tr OnClick="issues.selectIssue({{id_issue}}, $(this))" class="issue_block">
+                                    <td>{{description}}</td>
+                                    <td><button class="btn btn-danger btn-xs" OnClick="issues.deleteIssue({{id_issue}})"><?php echo $i18n['layout']['delete']; ?></button></td>
                                 </tr>
-                            {{/codes}}
+                            {{/issues}}
                         </tbody>
                     </table>
                 </script>
@@ -779,7 +797,7 @@ i18n = i18n[locale];
  
 
 
-var translation = {
+var issues = {
     save: function(code) {
 
         var data = $('#translationForm').serialize();
@@ -791,18 +809,16 @@ var translation = {
 
     },
 
-    render: function(code) {
+    render: function() {
 
-        var data = (code !== "undefined") ? {code: code, id_project:idSelectedProject} : {id_project:idSelectedProject};
-
-        sendRequest('translation/getone', data, function(response){
+        sendRequest('issue/getall', {id_project: idSelectedProject}, function(response){
             
             response.data.id_project = idSelectedProject;
 
-            var template = $('#translationFormTemplate').html();
+            var template = $('#issuesTemplate').html();
             var rendered = Mustache.render(template, response.data);
 
-            $('#translationFormBlock').html(rendered);
+            $('#issuesBlock').html(rendered);
         });
 
     }
@@ -839,7 +855,7 @@ var projects = {
         idSelectedProject = parseInt(idProject);
         projects.ProjectForm.render(idSelectedProject);
 
-        //translation.render();
+        issues.render();
         //codes.SearchField.show();
 
     },
@@ -849,7 +865,7 @@ var projects = {
         });
         ev.stopPropagation();
     },
-    
+
     
     ProjectForm: {
         save: function(){

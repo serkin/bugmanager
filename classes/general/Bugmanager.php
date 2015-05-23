@@ -106,13 +106,14 @@ class Bugmanager {
     }
     
     public function getAllIssuesFromProject($idProject)
-    {/*
-        
-        $sth = $this->dbh->prepare('SELECT * FROM `translation` WHERE `id_project` = ?');
-        $sth->bindParam(1, $idProject, PDO::PARAM_INT);
+    {
+
+        $sth = $this->dbh->prepare("SELECT * FROM `issue` WHERE `id_project` = ? and `status` = 'open'");
+        $sth->bindParam(1, $idProject,  PDO::PARAM_INT);
+        //$sth->bindParam(2, 'open',      PDO::PARAM_STR);
         $sth->execute();
 
-        return $sth->fetchAll(PDO::FETCH_ASSOC);*/
+        return $sth->fetchAll(PDO::FETCH_ASSOC);
 
     }
 

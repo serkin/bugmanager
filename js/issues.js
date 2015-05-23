@@ -1,6 +1,6 @@
 
 
-var translation = {
+var issues = {
     save: function(code) {
 
         var data = $('#translationForm').serialize();
@@ -12,18 +12,16 @@ var translation = {
 
     },
 
-    render: function(code) {
+    render: function() {
 
-        var data = (code !== "undefined") ? {code: code, id_project:idSelectedProject} : {id_project:idSelectedProject};
-
-        sendRequest('translation/getone', data, function(response){
+        sendRequest('issue/getall', {id_project: idSelectedProject}, function(response){
             
             response.data.id_project = idSelectedProject;
 
-            var template = $('#translationFormTemplate').html();
+            var template = $('#issuesTemplate').html();
             var rendered = Mustache.render(template, response.data);
 
-            $('#translationFormBlock').html(rendered);
+            $('#issuesBlock').html(rendered);
         });
 
     }
