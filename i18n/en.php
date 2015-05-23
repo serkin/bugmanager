@@ -16,10 +16,15 @@ $app['i18n']['en'] = array(
     'bugmanager' => array(
         'project_saved' => 'Project saved!',
         'project_removed' => 'Project removed!',
+        'issue_status_updated' => 'Issue status updated',
+        'issue_removed' => 'Issue removed!',
     ),
     
     'errors' => array(
         'empty_id_project' => 'ID project not specified',
         'empty_project_name' => 'Project name not specified',
+        'empty_issue_status' => 'Issue status not specified',
+        'empty_issue_id' => 'Issue ID not specified',
+        'cannot_update_issue_status' => 'Cannot update issue status',
     )
 );
