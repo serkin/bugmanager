@@ -183,6 +183,18 @@ class Bugmanager {
 
     }
     
+    public function setIssuesStatus($idIssue, $status)
+    {
+
+        $sth = $this->dbh->prepare('UPDATE `issue` SET `status` = ? WHERE `id_issue` = ?');
+
+        $sth->bindParam(1, $status,     PDO::PARAM_STR);
+        $sth->bindParam(2, $idIssue,    PDO::PARAM_INT);        
+
+        return $sth->execute();
+
+    }
+    
     /**
      * Removes project
      * 
@@ -237,21 +249,18 @@ class Bugmanager {
     }
     
     /**
-     * @param integer $idProject
-     * @param string $code
+     * @param integer $idIssue
      * 
      * @return boolean
      */
     public function deleteIssue($idIssue)
-    {/*
-        $sth = $this->dbh->prepare('DELETE FROM `translation` WHERE `code` = ? and `id_project` = ?');
+    {
+        $sth = $this->dbh->prepare('DELETE FROM `issue` WHERE `id_issue` = ?');
 
-        $sth->bindParam(1, $code,       PDO::PARAM_STR);
-        $sth->bindParam(2, $idProject,  PDO::PARAM_INT);
+        $sth->bindParam(1, $idIssue, PDO::PARAM_INT);
  
         return $sth->execute();
-     * 
-     */
+     
     }
     
     public function deleteRelease($idRelease){}
