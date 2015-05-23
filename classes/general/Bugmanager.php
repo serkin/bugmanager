@@ -159,28 +159,26 @@ class Bugmanager {
      * @return int|boolean False on error
      */
     public function saveProject($arr, $idProject = null)
-    {/*
+    {
 
         if(is_null($idProject)):
             $sth = $this->dbh->prepare('INSERT INTO `project` (`name`, `path`, `languages`) VALUES(?, ?, ?)');
         else:
-            $sth = $this->dbh->prepare('UPDATE `project` SET `name` = ?, `path` = ?, `languages` = ? WHERE `id_project` = ?');
+            $sth = $this->dbh->prepare('UPDATE `project` SET `name` = ? WHERE `id_project` = ?');
         endif;
 
-        $sth->bindParam(1, $arr['name'],        PDO::PARAM_STR);
-        $sth->bindParam(2, $arr['path'],        PDO::PARAM_STR);
-        $sth->bindParam(3, $arr['languages'],   PDO::PARAM_STR);
+        $sth->bindParam(1, $arr['name'], PDO::PARAM_STR);
 
         if(is_null($idProject)):
             $sth->execute();
             $returnValue = $this->dbh->lastInsertId() ? $this->dbh->lastInsertId() : 0;
         else:
-            $sth->bindParam(4, $idProject, PDO::PARAM_INT);
+            $sth->bindParam(2, $idProject, PDO::PARAM_INT);
             $sth->execute();
             $returnValue = $idProject;
         endif;
 
-        return $returnValue;*/
+        return $returnValue;
 
     }
     
