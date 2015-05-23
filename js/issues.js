@@ -24,5 +24,25 @@ var issues = {
             $('#issuesBlock').html(rendered);
         });
 
+    },
+    setIssueStatus: function(idIssue, status) {
+
+        sendRequest('issue/setstatus', {id_issue: idIssue, status: status}, function(response){
+            statusField.render(response.status);
+
+            if(response.status.state === 'Ok'){
+                issues.render();
+            }
+        });
+    },
+    deleteIssue: function(idIssue) {
+
+        sendRequest('issue/delete', {id_issue: idIssue}, function(response){
+            statusField.render(response.status);
+
+            if(response.status.state === 'Ok'){
+                issues.render();
+            }
+        });
     }
 };
