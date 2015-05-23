@@ -211,6 +211,18 @@ class Bugmanager {
 
     }
     
+    public function setIssuesStatus($idIssue, $status)
+    {
+
+        $sth = $this->dbh->prepare('UPDATE `issue` SET `status` = ? WHERE `id_issue` = ?');
+
+        $sth->bindParam(1, $status,     PDO::PARAM_STR);
+        $sth->bindParam(2, $idIssue,    PDO::PARAM_INT);        
+
+        return $sth->execute();
+
+    }
+    
     /**
      * Removes project
      * 
@@ -265,21 +277,18 @@ class Bugmanager {
     }
     
     /**
-     * @param integer $idProject
-     * @param string $code
+     * @param integer $idIssue
      * 
      * @return boolean
      */
     public function deleteIssue($idIssue)
-    {/*
-        $sth = $this->dbh->prepare('DELETE FROM `translation` WHERE `code` = ? and `id_project` = ?');
+    {
+        $sth = $this->dbh->prepare('DELETE FROM `issue` WHERE `id_issue` = ?');
 
-        $sth->bindParam(1, $code,       PDO::PARAM_STR);
-        $sth->bindParam(2, $idProject,  PDO::PARAM_INT);
+        $sth->bindParam(1, $idIssue, PDO::PARAM_INT);
  
         return $sth->execute();
-     * 
-     */
+     
     }
     
     public function deleteRelease($idRelease){}
@@ -348,13 +357,41 @@ $app['i18n']['en'] = array(
     'bugmanager' => array(
         'project_saved' => 'Project saved!',
         'project_removed' => 'Project removed!',
+        'issue_status_updated' => 'Issue status updated',
+        'issue_removed' => 'Issue removed!',
     ),
     
     'errors' => array(
         'empty_id_project' => 'ID project not specified',
         'empty_project_name' => 'Project name not specified',
+        'empty_issue_status' => 'Issue status not specified',
+        'empty_issue_id' => 'Issue ID not specified',
+        'cannot_update_issue_status' => 'Cannot update issue status',
     )
 );
+
+// Source: controllers/issue/delete.php
+
+
+$app['controllers']['issue/delete'] = function ($app, $request){
+
+    $idIssue = !empty($request['id_issue']) ? (int)$request['id_issue'] : null;
+
+    if(empty($idIssue)):
+        $result     = false;
+        $errorMsg   = $app['i18n']['errors']['empty_issue_id'];
+    else:
+        $result     = $app['bugmanager']->deleteIssue($idIssue);
+        $errorMsg   = $app['i18n']['errors']['cannot_update_issue_status'];
+    endif;
+    
+    if($result):
+        Response::responseWithSuccess(array(), $app['i18n']['bugmanager']['issue_removed']);
+    else:
+        Response::responseWithError($errorMsg);
+    endif;
+
+};
 
 // Source: controllers/issue/getall.php
 
@@ -420,6 +457,33 @@ $app['controllers']['translation/save'] = function ($app, $request) use($isCodeV
 
     if($result):
         Response::responseWithSuccess(array(), $app['i18n']['bugmanager']['translation_saved']);
+    else:
+        Response::responseWithError($errorMsg);
+    endif;
+
+};
+
+// Source: controllers/issue/setstatus.php
+
+
+$app['controllers']['issue/setstatus'] = function ($app, $request){
+
+    $idIssue    = !empty($request['id_issue'])  ? (int)$request['id_issue']   : null;
+    $status     = !empty($request['status'])    ? $request['status']          : null;
+
+    if(empty($status)):
+        $result     = false;
+        $errorMsg   = $app['i18n']['errors']['empty_issue_status'];
+    elseif(empty($idIssue)):
+        $result     = false;
+        $errorMsg   = $app['i18n']['errors']['empty_issue_id'];
+    else:
+        $result     = $app['bugmanager']->setIssuesStatus($idIssue, $status);
+        $errorMsg   = $app['i18n']['errors']['cannot_update_issue_status'];
+    endif;
+    
+    if($result):
+        Response::responseWithSuccess(array(), $app['i18n']['bugmanager']['issue_status_updated']);
     else:
         Response::responseWithError($errorMsg);
     endif;
@@ -683,7 +747,7 @@ endif;
 
             </div>
             <div class="col-md-1"></div>
-            <div class="col-md-2">
+            <div class="col-md-5">
                 <input type="text" class="form-control"
                        id="searchKeyword"
                        onkeyup="codes.SearchField.find($(this).val())"
@@ -692,14 +756,19 @@ endif;
                 <script id="issuesTemplate" type="x-tmpl-mustache">
                     <table class="table table-condensed">
                         <thead>
+                            <th>#</th>
                             <th><?php echo $i18n['layout']['description']; ?></th>
                             <th><?php echo $i18n['layout']['manage']; ?></th>
                         </thead>
                         <tbody>
                             {{#issues}}
                                 <tr OnClick="issues.selectIssue({{id_issue}}, $(this))" class="issue_block">
+                                    <td>{{id_issue}}</td>
                                     <td>{{description}}</td>
-                                    <td><button class="btn btn-danger btn-xs" OnClick="issues.deleteIssue({{id_issue}})"><?php echo $i18n['layout']['delete']; ?></button></td>
+                                    <td>
+                                        <button class="btn btn-success btn-xs" OnClick="issues.setIssueStatus({{id_issue}},'closed')">close</button>
+                                        <button class="btn btn-danger btn-xs" OnClick="issues.deleteIssue({{id_issue}})"><?php echo $i18n['layout']['delete']; ?></button>
+                                    </td>
                                 </tr>
                             {{/issues}}
                         </tbody>
@@ -708,7 +777,7 @@ endif;
 
             </div>
             <div class="col-md-1"></div>
-            <div class="col-md-4">
+            <div class="col-md-1">
                 <div id="translationFormBlock"></div>
                 <script id="translationFormTemplate" type="x-tmpl-mustache">
                     {{#id_project}}
@@ -821,6 +890,26 @@ var issues = {
             $('#issuesBlock').html(rendered);
         });
 
+    },
+    setIssueStatus: function(idIssue, status) {
+
+        sendRequest('issue/setstatus', {id_issue: idIssue, status: status}, function(response){
+            statusField.render(response.status);
+
+            if(response.status.state === 'Ok'){
+                issues.render();
+            }
+        });
+    },
+    deleteIssue: function(idIssue) {
+
+        sendRequest('issue/delete', {id_issue: idIssue}, function(response){
+            statusField.render(response.status);
+
+            if(response.status.state === 'Ok'){
+                issues.render();
+            }
+        });
     }
 };
 var idSelectedProject;
