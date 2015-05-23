@@ -5,6 +5,7 @@ $app['i18n']['en'] = array(
     'layout' => array(
         'title'             => 'Bugmanager',
         'name'              => 'Name',
+        'description'              => 'Description',
         'manage'            => 'Manage',
         'clear'             => 'Clear',
         'add_project'       => 'Add/edit project',
