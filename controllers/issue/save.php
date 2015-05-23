@@ -22,13 +22,13 @@ $app['controllers']['translation/save'] = function ($app, $request) use($isCodeV
         $result     = false;
         $errorMsg   = $app['i18n']['errors']['not_valid_project_code'];
     else:
-        $result     = $app['foler']->saveTranslation($idProject, $code, $arr);
-        $error      = $app['foler']->getError();
+        $result     = $app['bugmanager']->saveTranslation($idProject, $code, $arr);
+        $error      = $app['bugmanager']->getError();
         $errorMsg   = $error[2];
     endif;
 
     if($result):
-        Response::responseWithSuccess(array(), $app['i18n']['foler']['translation_saved']);
+        Response::responseWithSuccess(array(), $app['i18n']['bugmanager']['translation_saved']);
     else:
         Response::responseWithError($errorMsg);
     endif;

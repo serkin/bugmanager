@@ -6,7 +6,7 @@ $app = array();
 
 $app['config'] = array(
     'db' => array(
-        'dsn'      => 'mysql:dbname=foler;host=localhost',
+        'dsn'      => 'mysql:dbname=bugmanager;host=localhost',
         'user'      => 'root',
         'password'  => ''
     ),
@@ -23,7 +23,6 @@ endif;
 
 
 $app['locale'] = 'en';
-
 
 
 // Source: classes/general/Bugmanager.php
@@ -188,28 +187,26 @@ class Bugmanager {
      * @return int|boolean False on error
      */
     public function saveProject($arr, $idProject = null)
-    {/*
+    {
 
         if(is_null($idProject)):
             $sth = $this->dbh->prepare('INSERT INTO `project` (`name`, `path`, `languages`) VALUES(?, ?, ?)');
         else:
-            $sth = $this->dbh->prepare('UPDATE `project` SET `name` = ?, `path` = ?, `languages` = ? WHERE `id_project` = ?');
+            $sth = $this->dbh->prepare('UPDATE `project` SET `name` = ? WHERE `id_project` = ?');
         endif;
 
-        $sth->bindParam(1, $arr['name'],        PDO::PARAM_STR);
-        $sth->bindParam(2, $arr['path'],        PDO::PARAM_STR);
-        $sth->bindParam(3, $arr['languages'],   PDO::PARAM_STR);
+        $sth->bindParam(1, $arr['name'], PDO::PARAM_STR);
 
         if(is_null($idProject)):
             $sth->execute();
             $returnValue = $this->dbh->lastInsertId() ? $this->dbh->lastInsertId() : 0;
         else:
-            $sth->bindParam(4, $idProject, PDO::PARAM_INT);
+            $sth->bindParam(2, $idProject, PDO::PARAM_INT);
             $sth->execute();
             $returnValue = $idProject;
         endif;
 
-        return $returnValue;*/
+        return $returnValue;
 
     }
     
@@ -368,7 +365,7 @@ $app['controllers']['translation/getone'] = function ($app, $request){
     $idProject  = !empty($request['id_project'])    ? (int)$request['id_project']   : null;
 
 
-    $result = $app['foler']->getTranslation($idProject, $code);
+    $result = $app['bugmanager']->getTranslation($idProject, $code);
     Response::responseWithSuccess($result);
 
 };
@@ -398,13 +395,13 @@ $app['controllers']['translation/save'] = function ($app, $request) use($isCodeV
         $result     = false;
         $errorMsg   = $app['i18n']['errors']['not_valid_project_code'];
     else:
-        $result     = $app['foler']->saveTranslation($idProject, $code, $arr);
-        $error      = $app['foler']->getError();
+        $result     = $app['bugmanager']->saveTranslation($idProject, $code, $arr);
+        $error      = $app['bugmanager']->getError();
         $errorMsg   = $error[2];
     endif;
 
     if($result):
-        Response::responseWithSuccess(array(), $app['i18n']['foler']['translation_saved']);
+        Response::responseWithSuccess(array(), $app['i18n']['bugmanager']['translation_saved']);
     else:
         Response::responseWithError($errorMsg);
     endif;
@@ -426,91 +423,19 @@ $app['controllers']['project/delete'] = function ($app, $request){
         $result     = false;
         $errorMsg   = $app['i18n']['errors']['empty_id_project'];
     else:
-        $result     = $app['foler']->deleteProject($idProject);
-        $error      = $app['foler']->getError();
+        $result     = $app['bugmanager']->deleteProject($idProject);
+        $error      = $app['bugmanager']->getError();
         $errorMsg   = $error[2];
     endif;
 
 
     if($result):
-        Response::responseWithSuccess(array(), $app['i18n']['foler']['project_removed']);
+        Response::responseWithSuccess(array(), $app['i18n']['bugmanager']['project_removed']);
     else:
         Response::responseWithError($errorMsg);
     endif;
 
 };
-
-// Source: controllers/project/export.php
-
-
-
-$app['controllers']['project/export'] = function ($app, $request){
-
-
-    $idProject  = !empty($request['id_project']) ? (int)$request['id_project'] : null;
-    $type       = (!empty($request['type']) && in_array($request['type'], array('php','yaml'))) ? $request['type'] : 'php';
-
-    
-    $project    = $app['foler']->getProjectById($idProject);
-    $languages  = $app['foler']->getLanguagesFromProject($idProject);
-    
-    
-    
-    $result = true;
-    $directory = $project['path'];
-    
-
-    if(empty($project['path']) or !  is_writable($directory)):
-        $result     = false;
-        $errorMsg   = $app['i18n']['errors']['project_path_not_writable'].': ' . $directory;
-    else:
-        
-        switch ($type) {
-            case 'php':
-                $export = new PHPExport();
-                break;
-
-            case 'yaml':
-                $export = new YAMLExport();
-                break;
-
-            default:
-                break;
-        }
-        
-        $records = $app['foler']->getAllTranslationsFromProject($idProject);
-
-        
-        foreach ($languages as $language):
-            $out = array();
-            
-        
-            foreach ($records as $record):
-                if($record['language'] == $language):
-                    joinStringToArr($record['code'], $record['translation'], $out);
-                endif;
-            endforeach;
-            
-            if($export->export($out, $directory, $language) === false):
-                $result     = false;
-                $errorMsg   = $app['i18n']['errors']['cannot_export_project']. ': ' . $language;
-            endif;
-        
-        endforeach;
-        
-        
-    endif;
-
-
-
-    if($result === true):
-        Response::responseWithSuccess(array(), $app['i18n']['foler']['project_exported']);
-    else:
-        Response::responseWithError($errorMsg);
-    endif;
-
-};
-
 
 // Source: controllers/project/getall.php
 
@@ -543,51 +468,24 @@ $app['controllers']['project/getone'] = function ($app, $request){
 // Source: controllers/project/save.php
 
 
-$isLanguagesValid =  function($languages) {
-    
-    $returnValue = true;
 
-    if(strpos($languages, ' ') !== false):
-        $returnValue = false;
-    endif;
-    
-    $uniqueArr = array();
-    
-    foreach (explode(',', $languages) as $value):
-        if(empty($value) or strlen($value) != 2 or isset($uniqueArr[$value])):
-            $returnValue = false;
-        endif;
-        $uniqueArr[$value] = 1;
-    endforeach;
-    
-    return $returnValue;
-
-};
-
-$app['controllers']['project/save'] = function ($app, $request) use ($isLanguagesValid){
+$app['controllers']['project/save'] = function ($app, $request) {
 
     parse_str($request['form'], $form);
 
     $idProject = !empty($form['id_project']) ? $form['id_project'] : null;
 
-    
-    if(empty($form['languages']) or $isLanguagesValid($form['languages']) === false):
-        $result     = false;
-        $errorMsg   = $app['i18n']['errors']['not_valid_project_languages'];
-    elseif(empty($form['path'])):
-        $result     = false;
-        $errorMsg   = $app['i18n']['errors']['empty_project_export_path'];
-    elseif(empty($form['name'])):
+    if(empty($form['name'])):
         $result     = false;
         $errorMsg   = $app['i18n']['errors']['empty_project_name'];
     else:
-        $result     = $app['foler']->saveProject($form, $idProject);
-        $error      = $app['foler']->getError();
+        $result     = $app['bugmanager']->saveProject($form, $idProject);
+        $error      = $app['bugmanager']->getError();
         $errorMsg   = $error[2];
     endif;
 
     if($result):
-        Response::responseWithSuccess(array('id_project' => $result), $app['i18n']['foler']['project_saved']);
+        Response::responseWithSuccess(array('id_project' => $result), $app['i18n']['bugmanager']['project_saved']);
     else:
         Response::responseWithError($errorMsg);
     endif;
@@ -610,14 +508,14 @@ $app['controllers']['code/delete'] = function ($app, $request){
         $result     = false;
         $errorMsg   = $app['i18n']['errors']['empty_code'];
     else:
-        $result = $app['foler']->deleteCode($idProject, $code);
-        $error      = $app['foler']->getError();
+        $result     = $app['bugmanager']->deleteCode($idProject, $code);
+        $error      = $app['bugmanager']->getError();
         $errorMsg   = $error[2];
     endif;
 
 
     if($result):
-        Response::responseWithSuccess(array(), $app['i18n']['foler']['code_removed']);
+        Response::responseWithSuccess(array(), $app['i18n']['bugmanager']['code_removed']);
     else:
         Response::responseWithError($errorMsg);
     endif;
@@ -634,7 +532,7 @@ $app['controllers']['code/search'] = function ($app, $request){
     $keyword    = !empty($request['keyword'])       ? $request['keyword']           : null;
     $idProject  = !empty($request['id_project'])    ? (int)$request['id_project']   : null;
 
-    $codes = $app['foler']->getAllCodes($idProject, $keyword);
+    $codes = $app['bugmanager']->getAllCodes($idProject, $keyword);
     Response::responseWithSuccess(array('codes' => $codes));
 
 };

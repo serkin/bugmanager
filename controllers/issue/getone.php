@@ -8,7 +8,7 @@ $app['controllers']['translation/getone'] = function ($app, $request){
     $idProject  = !empty($request['id_project'])    ? (int)$request['id_project']   : null;
 
 
-    $result = $app['foler']->getTranslation($idProject, $code);
+    $result = $app['bugmanager']->getTranslation($idProject, $code);
     Response::responseWithSuccess($result);
 
 };
