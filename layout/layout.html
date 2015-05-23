@@ -106,7 +106,7 @@
 
             </div>
             <div class="col-md-1"></div>
-            <div class="col-md-2">
+            <div class="col-md-5">
                 <input type="text" class="form-control"
                        id="searchKeyword"
                        onkeyup="codes.SearchField.find($(this).val())"
@@ -115,14 +115,19 @@
                 <script id="issuesTemplate" type="x-tmpl-mustache">
                     <table class="table table-condensed">
                         <thead>
+                            <th>#</th>
                             <th><?php echo $i18n['layout']['description']; ?></th>
                             <th><?php echo $i18n['layout']['manage']; ?></th>
                         </thead>
                         <tbody>
                             {{#issues}}
                                 <tr OnClick="issues.selectIssue({{id_issue}}, $(this))" class="issue_block">
+                                    <td>{{id_issue}}</td>
                                     <td>{{description}}</td>
-                                    <td><button class="btn btn-danger btn-xs" OnClick="issues.deleteIssue({{id_issue}})"><?php echo $i18n['layout']['delete']; ?></button></td>
+                                    <td>
+                                        <button class="btn btn-success btn-xs" OnClick="issues.setIssueStatus({{id_issue}},'closed')">close</button>
+                                        <button class="btn btn-danger btn-xs" OnClick="issues.deleteIssue({{id_issue}})"><?php echo $i18n['layout']['delete']; ?></button>
+                                    </td>
                                 </tr>
                             {{/issues}}
                         </tbody>
@@ -131,7 +136,7 @@
 
             </div>
             <div class="col-md-1"></div>
-            <div class="col-md-4">
+            <div class="col-md-1">
                 <div id="translationFormBlock"></div>
                 <script id="translationFormTemplate" type="x-tmpl-mustache">
                     {{#id_project}}
