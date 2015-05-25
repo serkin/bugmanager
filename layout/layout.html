@@ -35,9 +35,12 @@
                 display: none;
             }
         </style>
-        <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+        <!--<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/0.8.1/mustache.min.js"></script>
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">-->
+        <script src="jquery-1.10.2.js"></script>
+        <script src="mustache.min.js"></script>
+        <link rel="stylesheet" href="bootstrap.min.css">
 
     </head>
     <body onLoad="projects.reload()">
@@ -93,15 +96,15 @@
                             <input type="hidden" name="id_project" value="{{id_project}}">
                         {{/id_project}}
             
-                    <div class="form-group">
-                        <label class="col-sm-6 control-label"><?php echo $i18n['layout']['name']; ?></label>
-                        <div class="col-sm-6">
-                            <input class="form-control input-sm" type="text" name="name" value="{{name}}">
+                        <div class="form-group">
+                            <label class="col-sm-6 control-label"><?php echo $i18n['layout']['name']; ?></label>
+                            <div class="col-sm-6">
+                                <input class="form-control input-sm" type="text" name="name" value="{{name}}">
+                            </div>
                         </div>
-                    </div>
-                    <button type="button" onclick="projects.ProjectForm.save()" class="btn btn-success"><?php echo $i18n['layout']['save']; ?></button>
-                    <button type="reset" onclick="projects.ProjectForm.render()" class="btn btn-default"><?php echo $i18n['layout']['clear']; ?></button>
-                </form>
+                        <button type="button" onclick="projects.ProjectForm.save()" class="btn btn-success"><?php echo $i18n['layout']['save']; ?></button>
+                        <button type="reset" onclick="projects.ProjectForm.render()" class="btn btn-default"><?php echo $i18n['layout']['clear']; ?></button>
+                    </form>
                 </script>
 
             </div>
@@ -121,7 +124,7 @@
                         </thead>
                         <tbody>
                             {{#issues}}
-                                <tr OnClick="issues.selectIssue({{id_issue}}, $(this))" class="issue_block">
+                                <tr OnClick="issues.selectIssue({{id_issue}}, $(this))" class="issue_block" id="issue_block_{{id_issue}}">
                                     <td>{{id_issue}}</td>
                                     <td>{{description}}</td>
                                     <td>
@@ -132,6 +135,56 @@
                             {{/issues}}
                         </tbody>
                     </table>
+                </script>
+                
+                <div id="issueFormBlock"></div>
+                <script id="issueFormTemplate" type="x-tmpl-mustache">
+                    <form id="issueForm" class="form-horizontal">
+                        {{#issue.id_issue}}
+                            <input type="hidden" name="id_issue" value="{{issue.id_issue}}">
+                        {{/issue.id_issue}}
+            
+                        <div class="form-group">
+                            <label class="col-sm-6 control-label"><?php echo $i18n['layout']['description']; ?></label>
+                            <div class="col-sm-6">
+                                <textarea class="form-control input-sm" name="description">{{issue.description}}</textarea>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-6 control-label"><?php echo $i18n['layout']['type']; ?></label>
+                            <div class="col-sm-6">
+                                <select class="form-control input-sm" name="type">
+                                    {{#options.type}}
+                                        <option value="{{name}}">{{name}}</option>
+                                    {{/options.type}}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-6 control-label"><?php echo $i18n['layout']['assigned_to_user']; ?></label>
+                            <div class="col-sm-6">
+                                <select class="form-control input-sm" name="assigned_to">
+                                    {{#users}}
+                                        <option value="{{id_user}}">{{login}}</option>
+                                    {{/users}}
+                                </select>
+                            </div>
+                        </div>
+                        {{#releases}}
+                            <div class="form-group">
+                                <label class="col-sm-6 control-label"><?php echo $i18n['layout']['release']; ?></label>
+                                <div class="col-sm-6">
+                                    <select class="form-control input-sm" name="id_tag">
+                                        {{#tags}}
+                                            <option value="{{id_tag}}">{{version}}</option>
+                                        {{/tags}}
+                                    </select>
+                                </div>
+                            </div>
+                        {{/releases}}
+                        <button type="button" onclick="issues.IssueForm.save()" class="btn btn-success"><?php echo $i18n['layout']['save']; ?></button>
+                        <button type="reset" onclick="issues.IssueForm.render()" class="btn btn-default"><?php echo $i18n['layout']['clear']; ?></button>
+                    </form>
                 </script>
 
             </div>
