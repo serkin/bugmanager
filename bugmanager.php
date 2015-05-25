@@ -105,33 +105,6 @@ class Bugmanager {
     }
 
 
-    /**
-     * Gets translation according with given code and idProject or all records
-     * 
-     * @param integer $idProject
-     * @param string $code
-     * @return array
-     */
-    public function getIssue($idIssue){/*
-
-        $languages = $this->getLanguagesFromProject($idProject);
-
-        $dbRecords = !is_null($code) ? $this->getCodeTranslation($idProject, $code) : array();
-
-
-        $returnValue = array();
-        $returnValue['code'] = $code;
-
-        foreach ($languages as $lang):
-            $returnValue['translations'][] = array(
-                'language'      => $lang,
-                'translation'   => !empty($dbRecords[$lang]) ? $dbRecords[$lang] : ''
-            );
-        endforeach;
-
-        return $returnValue;   */   
-
-    }
     
     public function getAllIssuesFromProject($idProject)
     {
@@ -145,22 +118,38 @@ class Bugmanager {
 
     }
 
+    public function getAllUsers()
+    {
 
-    private function getAllReleasesFromProject($idProject)
-    {/*
-        $returnValue = array();
- 
-        $sth = $this->dbh->prepare('SELECT * FROM `translation` WHERE `id_project` = ? and `code` = ?');
-        $sth->bindParam(1, $idProject, PDO::PARAM_INT);
-        $sth->bindParam(2, $code, PDO::PARAM_STR);
+        $sth = $this->dbh->prepare("SELECT * FROM `user`");
 
         $sth->execute();
 
-        foreach($sth->fetchAll(PDO::FETCH_ASSOC) as $record):
-            $returnValue[$record['language']] = $record['translation'];
-        endforeach;
+        return $sth->fetchAll(PDO::FETCH_ASSOC);
 
-        return $returnValue;*/
+    }
+
+
+    public function getAllReleasesFromProject($idProject)
+    {
+        $sth = $this->dbh->prepare("SELECT * FROM `tag` WHERE `id_project` = ?");
+        $sth->bindParam(1, $idProject, PDO::PARAM_INT);
+
+        $sth->execute();
+
+        return $sth->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    public function getIssue($idIssue)
+    {
+
+        $sth = $this->dbh->prepare("SELECT * FROM `issue` WHERE `id_issue` = ?");
+        $sth->bindParam(1, $idIssue, PDO::PARAM_INT);
+
+        $sth->execute();
+
+        return $sth->fetch(PDO::FETCH_ASSOC);
+
     }
 
     /**
@@ -249,34 +238,75 @@ class Bugmanager {
      */
     public function saveIssue($arr, $idIssue = null)
     {
-        /*
-
-        $languages = $this->getLanguagesFromProject($idProject);
-
-        foreach ($languages as $language):
-            
-            if(isset($arr[$language])):
-                $value = !empty($arr[$language]) ? $arr[$language] : '';
-            
-                $sth = $this->dbh->prepare('INSERT INTO `translation` (`id_project`, `code`, `language`, `translation`) VALUES(?, ?, ?, ?)'
-                        . 'ON DUPLICATE KEY UPDATE `translation` = ?');
-                
-                $sth->bindParam(1, $idProject,  PDO::PARAM_INT);
-                $sth->bindParam(2, $code,       PDO::PARAM_STR);
-                $sth->bindParam(3, $language,   PDO::PARAM_STR);
-                $sth->bindParam(4, $value,      PDO::PARAM_STR);
-                $sth->bindParam(5, $value,      PDO::PARAM_STR);
-
-                if($sth->execute() === false):
-                    return false;
-                endif;
-            endif;
-        endforeach;
-
-        return true;*/
+        
+        $arr['id_project']  = !empty($arr['id_project'])  ? $arr['id_project']    : null;
+        $arr['id_tag']      = !empty($arr['id_tag'])      ? $arr['id_tag']        : null;
+        $arr['description'] = !empty($arr['description']) ? $arr['description']   : null;
+        $arr['type']        = !empty($arr['type'])        ? $arr['type']          : null;
+        $arr['created_by']  = !empty($arr['created_by'])  ? $arr['created_by']    : null;
+        $arr['assigned_to'] = !empty($arr['assigned_to']) ? $arr['assigned_to']   : null;
+        
+        
+        if(is_null($idIssue)):
+            return $this->insertIssue($arr);
+        else:
+            return $this->updateIssue($arr, $idIssue);
+        endif;
     }
     
-    /**
+    private function insertIssue($arr)
+    {
+        $sql = '
+            INSERT INTO
+                `issue` (
+                    `id_project`,
+                    `id_tag`,
+                    `description`,
+                    `type`,
+                    `created_by`,
+                    `assigned_to`
+                )
+            VALUES(?, ?, ?, ?, 1, ?)';
+        $sth = $this->dbh->prepare($sql);
+        
+        $sth->bindParam(1, $arr['id_project'],  PDO::PARAM_INT);
+        $sth->bindParam(2, $arr['id_tag'],      PDO::PARAM_INT);
+        $sth->bindParam(3, $arr['description'], PDO::PARAM_STR);
+        $sth->bindParam(4, $arr['type'],        PDO::PARAM_STR);
+        $sth->bindParam(5, $arr['assigned_to'], PDO::PARAM_INT);
+
+        $sth->execute();
+
+        return $this->dbh->lastInsertId() ? $this->dbh->lastInsertId() : false;
+    }
+    
+    private function updateIssue($arr, $idIssue)
+    {
+
+        $sql = '
+            UPDATE
+                `issue`
+            SET
+                `id_tag`        = ?,
+                `description`   = ?,
+                `type`          = ?,
+                `assigned_to`   = ?
+            WHERE
+                `id_issue` = ?';
+
+        $sth = $this->dbh->prepare($sql);
+
+        $sth->bindParam(1, $arr['id_tag'],      PDO::PARAM_INT);
+        $sth->bindParam(2, $arr['description'], PDO::PARAM_STR);
+        $sth->bindParam(3, $arr['type'],        PDO::PARAM_STR);
+        $sth->bindParam(4, $arr['assigned_to'], PDO::PARAM_INT);
+        $sth->bindParam(5, $idIssue,            PDO::PARAM_INT);
+        
+        return $sth->execute();
+
+    }
+
+/**
      * @param integer $idIssue
      * 
      * @return boolean
@@ -351,6 +381,9 @@ $app['i18n']['en'] = array(
         'clear'             => 'Clear',
         'add_project'       => 'Add/edit project',
         'delete'            => 'delete',
+        'release'  => 'Release',
+        'assigned_to_user'  => 'Assigned to user',
+        'type'  => 'Type',
         'issue_search_placeholder'  => 'code',
         'save'              => 'Save'
         ),
@@ -359,6 +392,7 @@ $app['i18n']['en'] = array(
         'project_removed' => 'Project removed!',
         'issue_status_updated' => 'Issue status updated',
         'issue_removed' => 'Issue removed!',
+        'issue_saved' => 'Issue saved!',
     ),
     
     'errors' => array(
@@ -412,51 +446,59 @@ $app['controllers']['issue/getall'] = function ($app, $request){
 // Source: controllers/issue/getone.php
 
 
+$app['controllers']['issue/getone'] = function ($app, $request){
 
-
-$app['controllers']['translation/getone'] = function ($app, $request){
+    $idProject  = !empty($request['id_project'])   ? $request['id_project']   : null;
+    $idIssue    = !empty($request['id_issue'])     ? $request['id_issue']     : null;
     
-    $code       = !empty($request['code'])          ? $request['code']              : null;
-    $idProject  = !empty($request['id_project'])    ? (int)$request['id_project']   : null;
-
-
-    $result = $app['bugmanager']->getTranslation($idProject, $code);
-    Response::responseWithSuccess($result);
-
-};
-
-// Source: controllers/issue/save.php
-
-
-$isCodeValid = function($code) {
-
-    return preg_match('/^[a-z0-9_\.]+$/', $code) === 1 ? true : false;
-    
-};
-
-$app['controllers']['translation/save'] = function ($app, $request) use($isCodeValid) {
-
-    parse_str(urldecode($request['form']), $form);
-
-
-    $idProject  = !empty($form['id_project'])   ? $form['id_project']   : null;
-    $code       = !empty($form['code'])         ? $form['code']         : null;
-    $arr        = !empty($form['translation'])  ? $form['translation']  : array();
+    $result = true;
 
     if(empty($idProject)):
         $result     = false;
         $errorMsg   = $app['i18n']['errors']['empty_id_project'];
-    elseif(empty($code) or $isCodeValid($code) === false):
+    elseif(empty($idIssue)):
         $result     = false;
-        $errorMsg   = $app['i18n']['errors']['not_valid_project_code'];
+        $errorMsg   = $app['i18n']['errors']['empty_issue_id'];
     else:
-        $result     = $app['bugmanager']->saveTranslation($idProject, $code, $arr);
+        
+        $response = array();
+        $response['users']  = $app['bugmanager']->getAllUsers();
+        $response['tags']   = $app['bugmanager']->getAllReleasesFromProject($idProject);
+        $response['issue']  = $app['bugmanager']->getIssue($idIssue);
+    endif;
+
+    if($result):
+        Response::responseWithSuccess($response);
+    else:
+        Response::responseWithError($errorMsg);
+    endif;
+
+};
+
+
+// Source: controllers/issue/save.php
+
+
+
+$app['controllers']['issue/save'] = function ($app, $request) {
+
+    parse_str(urldecode($request['form']), $arr);
+
+
+    $idIssue    = !empty($arr['id_issue'])   ? $arr['id_issue']   : null;
+    $arr['id_project'] = !empty($request['id_project']) ? (int)$request['id_project'] : null;
+
+    if(empty($idIssue)):
+        $result     = false;
+        $errorMsg   = $app['i18n']['errors']['empty_id_project'];
+    else:
+        $result     = $app['bugmanager']->saveIssue($arr, $idIssue);
         $error      = $app['bugmanager']->getError();
         $errorMsg   = $error[2];
     endif;
 
     if($result):
-        Response::responseWithSuccess(array(), $app['i18n']['bugmanager']['translation_saved']);
+        Response::responseWithSuccess(array(), $app['i18n']['bugmanager']['issue_saved']);
     else:
         Response::responseWithError($errorMsg);
     endif;
@@ -676,9 +718,12 @@ endif;
                 display: none;
             }
         </style>
-        <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+        <!--<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/0.8.1/mustache.min.js"></script>
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">-->
+        <script src="jquery-1.10.2.js"></script>
+        <script src="mustache.min.js"></script>
+        <link rel="stylesheet" href="bootstrap.min.css">
 
     </head>
     <body onLoad="projects.reload()">
@@ -734,15 +779,15 @@ endif;
                             <input type="hidden" name="id_project" value="{{id_project}}">
                         {{/id_project}}
             
-                    <div class="form-group">
-                        <label class="col-sm-6 control-label"><?php echo $i18n['layout']['name']; ?></label>
-                        <div class="col-sm-6">
-                            <input class="form-control input-sm" type="text" name="name" value="{{name}}">
+                        <div class="form-group">
+                            <label class="col-sm-6 control-label"><?php echo $i18n['layout']['name']; ?></label>
+                            <div class="col-sm-6">
+                                <input class="form-control input-sm" type="text" name="name" value="{{name}}">
+                            </div>
                         </div>
-                    </div>
-                    <button type="button" onclick="projects.ProjectForm.save()" class="btn btn-success"><?php echo $i18n['layout']['save']; ?></button>
-                    <button type="reset" onclick="projects.ProjectForm.render()" class="btn btn-default"><?php echo $i18n['layout']['clear']; ?></button>
-                </form>
+                        <button type="button" onclick="projects.ProjectForm.save()" class="btn btn-success"><?php echo $i18n['layout']['save']; ?></button>
+                        <button type="reset" onclick="projects.ProjectForm.render()" class="btn btn-default"><?php echo $i18n['layout']['clear']; ?></button>
+                    </form>
                 </script>
 
             </div>
@@ -762,7 +807,7 @@ endif;
                         </thead>
                         <tbody>
                             {{#issues}}
-                                <tr OnClick="issues.selectIssue({{id_issue}}, $(this))" class="issue_block">
+                                <tr OnClick="issues.selectIssue({{id_issue}}, $(this))" class="issue_block" id="issue_block_{{id_issue}}">
                                     <td>{{id_issue}}</td>
                                     <td>{{description}}</td>
                                     <td>
@@ -773,6 +818,56 @@ endif;
                             {{/issues}}
                         </tbody>
                     </table>
+                </script>
+                
+                <div id="issueFormBlock"></div>
+                <script id="issueFormTemplate" type="x-tmpl-mustache">
+                    <form id="issueForm" class="form-horizontal">
+                        {{#issue.id_issue}}
+                            <input type="hidden" name="id_issue" value="{{issue.id_issue}}">
+                        {{/issue.id_issue}}
+            
+                        <div class="form-group">
+                            <label class="col-sm-6 control-label"><?php echo $i18n['layout']['description']; ?></label>
+                            <div class="col-sm-6">
+                                <textarea class="form-control input-sm" name="description">{{issue.description}}</textarea>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-6 control-label"><?php echo $i18n['layout']['type']; ?></label>
+                            <div class="col-sm-6">
+                                <select class="form-control input-sm" name="type">
+                                    {{#options.type}}
+                                        <option value="{{name}}">{{name}}</option>
+                                    {{/options.type}}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-6 control-label"><?php echo $i18n['layout']['assigned_to_user']; ?></label>
+                            <div class="col-sm-6">
+                                <select class="form-control input-sm" name="assigned_to">
+                                    {{#users}}
+                                        <option value="{{id_user}}">{{login}}</option>
+                                    {{/users}}
+                                </select>
+                            </div>
+                        </div>
+                        {{#releases}}
+                            <div class="form-group">
+                                <label class="col-sm-6 control-label"><?php echo $i18n['layout']['release']; ?></label>
+                                <div class="col-sm-6">
+                                    <select class="form-control input-sm" name="id_tag">
+                                        {{#tags}}
+                                            <option value="{{id_tag}}">{{version}}</option>
+                                        {{/tags}}
+                                    </select>
+                                </div>
+                            </div>
+                        {{/releases}}
+                        <button type="button" onclick="issues.IssueForm.save()" class="btn btn-success"><?php echo $i18n['layout']['save']; ?></button>
+                        <button type="reset" onclick="issues.IssueForm.render()" class="btn btn-default"><?php echo $i18n['layout']['clear']; ?></button>
+                    </form>
                 </script>
 
             </div>
@@ -910,6 +1005,57 @@ var issues = {
                 issues.render();
             }
         });
+    },
+    selectIssue: function(idIssue) {
+
+        $('.issue_block').removeClass('success');
+        $('#issue_block_' + idIssue).addClass('success');
+
+        issues.IssueForm.render(idIssue);
+
+    },
+    IssueForm: {
+        save: function(){
+            var data = $('#issueForm').serialize();
+
+            sendRequest('issue/save', {form: data, id_project: idSelectedProject}, function(response){
+
+                statusField.render(response.status);
+
+                if(response.status.state === 'Ok'){
+                    issues.reload();
+
+                }
+
+            });
+        },
+
+        render: function(idIssue) {
+
+            var template = $('#issueFormTemplate').html();
+
+            if(idIssue === undefined) {
+
+                var rendered = Mustache.render(template);
+                $('#issueFormBlock').html(rendered);
+
+            } else {
+
+                sendRequest('issue/getone',{id_project: idSelectedProject, id_issue: idIssue}, function(response){
+
+                    response.data.options = {
+                        type: [
+                            { name: 'bug' },
+                            { name: 'feature' }
+                        ]
+                    };
+
+                    var rendered = Mustache.render(template, response.data);
+                    $('#issueFormBlock').html(rendered);
+
+                });
+            }
+        }
     }
 };
 var idSelectedProject;
