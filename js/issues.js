@@ -44,5 +44,56 @@ var issues = {
                 issues.render();
             }
         });
+    },
+    selectIssue: function(idIssue) {
+
+        $('.issue_block').removeClass('success');
+        $('#issue_block_' + idIssue).addClass('success');
+
+        issues.IssueForm.render(idIssue);
+
+    },
+    IssueForm: {
+        save: function(){
+            var data = $('#issueForm').serialize();
+
+            sendRequest('issue/save', {form: data, id_project: idSelectedProject}, function(response){
+
+                statusField.render(response.status);
+
+                if(response.status.state === 'Ok'){
+                    issues.reload();
+
+                }
+
+            });
+        },
+
+        render: function(idIssue) {
+
+            var template = $('#issueFormTemplate').html();
+
+            if(idIssue === undefined) {
+
+                var rendered = Mustache.render(template);
+                $('#issueFormBlock').html(rendered);
+
+            } else {
+
+                sendRequest('issue/getone',{id_project: idSelectedProject, id_issue: idIssue}, function(response){
+
+                    response.data.options = {
+                        type: [
+                            { name: 'bug' },
+                            { name: 'feature' }
+                        ]
+                    };
+
+                    var rendered = Mustache.render(template, response.data);
+                    $('#issueFormBlock').html(rendered);
+
+                });
+            }
+        }
     }
 };

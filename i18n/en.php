@@ -10,6 +10,9 @@ $app['i18n']['en'] = array(
         'clear'             => 'Clear',
         'add_project'       => 'Add/edit project',
         'delete'            => 'delete',
+        'release'  => 'Release',
+        'assigned_to_user'  => 'Assigned to user',
+        'type'  => 'Type',
         'issue_search_placeholder'  => 'code',
         'save'              => 'Save'
         ),
@@ -18,6 +21,7 @@ $app['i18n']['en'] = array(
         'project_removed' => 'Project removed!',
         'issue_status_updated' => 'Issue status updated',
         'issue_removed' => 'Issue removed!',
+        'issue_saved' => 'Issue saved!',
     ),
     
     'errors' => array(
