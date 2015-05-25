@@ -154,9 +154,9 @@
                             <label class="col-sm-6 control-label"><?php echo $i18n['layout']['type']; ?></label>
                             <div class="col-sm-6">
                                 <select class="form-control input-sm" name="type">
-                                    {{#options.type}}
-                                        <option value="{{name}}">{{name}}</option>
-                                    {{/options.type}}
+                                    {{#types}}
+                                        <option {{#selected}}selected{{/selected}} value="{{name}}">{{name}}</option>
+                                    {{/types}}
                                 </select>
                             </div>
                         </div>
