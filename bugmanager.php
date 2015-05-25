@@ -837,9 +837,9 @@ endif;
                             <label class="col-sm-6 control-label"><?php echo $i18n['layout']['type']; ?></label>
                             <div class="col-sm-6">
                                 <select class="form-control input-sm" name="type">
-                                    {{#options.type}}
-                                        <option value="{{name}}">{{name}}</option>
-                                    {{/options.type}}
+                                    {{#types}}
+                                        <option {{#selected}}selected{{/selected}} value="{{name}}">{{name}}</option>
+                                    {{/types}}
                                 </select>
                             </div>
                         </div>
@@ -1043,12 +1043,18 @@ var issues = {
 
                 sendRequest('issue/getone',{id_project: idSelectedProject, id_issue: idIssue}, function(response){
 
-                    response.data.options = {
-                        type: [
+
+                    response.data.types = [
                             { name: 'bug' },
                             { name: 'feature' }
-                        ]
-                    };
+                        ];
+                        
+                    for (var i in response.data.types) {
+                        
+                        if(response.data.types[i].name === response.data.issue.type) {
+                            response.data.types[i].selected = true;
+                        }
+                    }
 
                     var rendered = Mustache.render(template, response.data);
                     $('#issueFormBlock').html(rendered);
