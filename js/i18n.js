@@ -2,6 +2,7 @@ var locale = 'en';
 var i18n = {
     en: {
         no_projects: 'No projects yet. Start with adding new project in the form below',
+        no_tags: 'No tags yet.',
         no_codes: 'No codes found.',
     }
 };
