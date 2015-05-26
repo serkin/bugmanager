@@ -17,7 +17,7 @@ $app['controllers']['issue/getone'] = function ($app, $request){
         
         $response = array();
         $response['users']  = $app['bugmanager']->getAllUsers();
-        $response['tags']   = $app['bugmanager']->getAllReleasesFromProject($idProject);
+        $response['tags']   = $app['bugmanager']->getAllTagsFromProject($idProject);
         $response['issue']  = $app['bugmanager']->getIssue($idIssue);
     endif;
 

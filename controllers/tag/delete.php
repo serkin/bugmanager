@@ -1,6 +1,6 @@
 <?php
 
-$app['controllers']['code/delete'] = function ($app, $request){
+$app['controllers']['tag/delete'] = function ($app, $request){
 
     $idProject  = !empty($request['id_project'])    ? (int)$request['id_project']   : null;
     $code       = !empty($request['code'])          ? $request['code']              : null;

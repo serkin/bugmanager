@@ -12,7 +12,7 @@ var issues = {
 
     },
 
-    render: function() {
+    reload: function() {
 
         sendRequest('issue/getall', {id_project: idSelectedProject}, function(response){
             
@@ -31,7 +31,7 @@ var issues = {
             statusField.render(response.status);
 
             if(response.status.state === 'Ok'){
-                issues.render();
+                issues.reload();
             }
         });
     },
@@ -41,7 +41,7 @@ var issues = {
             statusField.render(response.status);
 
             if(response.status.state === 'Ok'){
-                issues.render();
+                issues.reload();
             }
         });
     },
@@ -82,18 +82,30 @@ var issues = {
 
                 sendRequest('issue/getone',{id_project: idSelectedProject, id_issue: idIssue}, function(response){
 
-
                     response.data.types = [
                             { name: 'bug' },
                             { name: 'feature' }
                         ];
-                        
+
+                    // Select type
+
                     for (var i in response.data.types) {
-                        
+
                         if(response.data.types[i].name === response.data.issue.type) {
                             response.data.types[i].selected = true;
                         }
                     }
+
+                    // Select release
+
+
+                        for (var i in response.data.tags) {
+
+                            if(response.data.tags[i].id_tag === response.data.issue.id_tag) {
+                                response.data.tags[i].selected = true;
+                            }
+                        }
+                    
 
                     var rendered = Mustache.render(template, response.data);
                     $('#issueFormBlock').html(rendered);

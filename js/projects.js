@@ -30,8 +30,8 @@ var projects = {
         idSelectedProject = parseInt(idProject);
         projects.ProjectForm.render(idSelectedProject);
 
-        issues.render();
-        //codes.SearchField.show();
+        issues.reload();
+        tags.reload();
 
     },
     export: function(idProject, type, ev) {

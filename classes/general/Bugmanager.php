@@ -102,7 +102,7 @@ class Bugmanager {
     }
 
 
-    public function getAllReleasesFromProject($idProject)
+    public function getAllTagsFromProject($idProject)
     {
         $sth = $this->dbh->prepare("SELECT * FROM `tag` WHERE `id_project` = ?");
         $sth->bindParam(1, $idProject, PDO::PARAM_INT);
@@ -117,6 +117,18 @@ class Bugmanager {
 
         $sth = $this->dbh->prepare("SELECT * FROM `issue` WHERE `id_issue` = ?");
         $sth->bindParam(1, $idIssue, PDO::PARAM_INT);
+
+        $sth->execute();
+
+        return $sth->fetch(PDO::FETCH_ASSOC);
+
+    }
+    
+    public function getTag($idTag)
+    {
+
+        $sth = $this->dbh->prepare("SELECT * FROM `tag` WHERE `id_tag` = ?");
+        $sth->bindParam(1, $idTag, PDO::PARAM_INT);
 
         $sth->execute();
 
@@ -171,7 +183,8 @@ class Bugmanager {
         return $returnValue;
 
     }
-    
+
+
     public function setIssuesStatus($idIssue, $status)
     {
 
@@ -183,7 +196,7 @@ class Bugmanager {
         return $sth->execute();
 
     }
-    
+
     /**
      * Removes project
      * 
@@ -198,8 +211,31 @@ class Bugmanager {
     }
 
 
-    
-    public function saveRelease($arr, $idRelease = null){}
+
+    public function saveTag($version, $idProject, $idTag = null)
+    {
+
+        if(is_null($idTag)):
+            $sth = $this->dbh->prepare('INSERT INTO `tag` (`version`, `id_project`) VALUES(?, ?)');
+        else:
+            $sth = $this->dbh->prepare('UPDATE `tag` SET `version` = ? WHERE `id_tag` = ?');
+        endif;
+
+        $sth->bindParam(1, $version, PDO::PARAM_STR);
+
+
+        if(is_null($idTag)):
+            $sth->bindParam(2, $idProject, PDO::PARAM_INT);
+            $sth->execute();
+            $returnValue = $this->dbh->lastInsertId() ? $this->dbh->lastInsertId() : 0;
+        else:
+            $sth->bindParam(2, $idTag, PDO::PARAM_INT);
+            $sth->execute();
+            $returnValue = $idTag;
+        endif;
+
+        return $returnValue;
+    }
     /**
      * 
      * @param integer $idProject
@@ -293,6 +329,9 @@ class Bugmanager {
      
     }
     
-    public function deleteRelease($idRelease){}
+    public function deleteTag($idTag)
+    {
+        
+    }
     
 }
