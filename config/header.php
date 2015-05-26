@@ -4,7 +4,7 @@ $app = array();
 
 $app['config'] = array(
     'db' => array(
-        'dsn'      => 'mysql:dbname=foler;host=localhost',
+        'dsn'      => 'mysql:dbname=bugmanager;host=localhost',
         'user'      => 'root',
         'password'  => ''
     ),
@@ -21,4 +21,3 @@ endif;
 
 
 $app['locale'] = 'en';
-

@@ -6,7 +6,7 @@ $app = array();
 
 $app['config'] = array(
     'db' => array(
-        'dsn'      => 'mysql:dbname=foler;host=localhost',
+        'dsn'      => 'mysql:dbname=bugmanager;host=localhost',
         'user'      => 'root',
         'password'  => ''
     ),
@@ -23,7 +23,6 @@ endif;
 
 
 $app['locale'] = 'en';
-
 
 
 // Source: classes/general/Bugmanager.php
@@ -106,61 +105,63 @@ class Bugmanager {
     }
 
 
-    /**
-     * Gets translation according with given code and idProject or all records
-     * 
-     * @param integer $idProject
-     * @param string $code
-     * @return array
-     */
-    public function getIssue($idIssue){/*
+    
+    public function getAllIssuesFromProject($idProject)
+    {
 
-        $languages = $this->getLanguagesFromProject($idProject);
+        $sth = $this->dbh->prepare("SELECT * FROM `issue` WHERE `id_project` = ? and `status` = 'open'");
+        $sth->bindParam(1, $idProject,  PDO::PARAM_INT);
+        //$sth->bindParam(2, 'open',      PDO::PARAM_STR);
+        $sth->execute();
 
-        $dbRecords = !is_null($code) ? $this->getCodeTranslation($idProject, $code) : array();
+        return $sth->fetchAll(PDO::FETCH_ASSOC);
+
+    }
+
+    public function getAllUsers()
+    {
+
+        $sth = $this->dbh->prepare("SELECT * FROM `user`");
+
+        $sth->execute();
+
+        return $sth->fetchAll(PDO::FETCH_ASSOC);
+
+    }
 
 
-        $returnValue = array();
-        $returnValue['code'] = $code;
+    public function getAllTagsFromProject($idProject)
+    {
+        $sth = $this->dbh->prepare("SELECT * FROM `tag` WHERE `id_project` = ?");
+        $sth->bindParam(1, $idProject, PDO::PARAM_INT);
 
-        foreach ($languages as $lang):
-            $returnValue['translations'][] = array(
-                'language'      => $lang,
-                'translation'   => !empty($dbRecords[$lang]) ? $dbRecords[$lang] : ''
-            );
-        endforeach;
+        $sth->execute();
 
-        return $returnValue;   */   
+        return $sth->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    public function getIssue($idIssue)
+    {
+
+        $sth = $this->dbh->prepare("SELECT * FROM `issue` WHERE `id_issue` = ?");
+        $sth->bindParam(1, $idIssue, PDO::PARAM_INT);
+
+        $sth->execute();
+
+        return $sth->fetch(PDO::FETCH_ASSOC);
 
     }
     
-    public function getAllIssuesFromProject($idProject)
-    {/*
-        
-        $sth = $this->dbh->prepare('SELECT * FROM `translation` WHERE `id_project` = ?');
-        $sth->bindParam(1, $idProject, PDO::PARAM_INT);
-        $sth->execute();
+    public function getTag($idTag)
+    {
 
-        return $sth->fetchAll(PDO::FETCH_ASSOC);*/
-
-    }
-
-
-    private function getAllReleasesFromProject($idProject)
-    {/*
-        $returnValue = array();
- 
-        $sth = $this->dbh->prepare('SELECT * FROM `translation` WHERE `id_project` = ? and `code` = ?');
-        $sth->bindParam(1, $idProject, PDO::PARAM_INT);
-        $sth->bindParam(2, $code, PDO::PARAM_STR);
+        $sth = $this->dbh->prepare("SELECT * FROM `tag` WHERE `id_tag` = ?");
+        $sth->bindParam(1, $idTag, PDO::PARAM_INT);
 
         $sth->execute();
 
-        foreach($sth->fetchAll(PDO::FETCH_ASSOC) as $record):
-            $returnValue[$record['language']] = $record['translation'];
-        endforeach;
+        return $sth->fetch(PDO::FETCH_ASSOC);
 
-        return $returnValue;*/
     }
 
     /**
@@ -188,31 +189,42 @@ class Bugmanager {
      * @return int|boolean False on error
      */
     public function saveProject($arr, $idProject = null)
-    {/*
+    {
 
         if(is_null($idProject)):
             $sth = $this->dbh->prepare('INSERT INTO `project` (`name`, `path`, `languages`) VALUES(?, ?, ?)');
         else:
-            $sth = $this->dbh->prepare('UPDATE `project` SET `name` = ?, `path` = ?, `languages` = ? WHERE `id_project` = ?');
+            $sth = $this->dbh->prepare('UPDATE `project` SET `name` = ? WHERE `id_project` = ?');
         endif;
 
-        $sth->bindParam(1, $arr['name'],        PDO::PARAM_STR);
-        $sth->bindParam(2, $arr['path'],        PDO::PARAM_STR);
-        $sth->bindParam(3, $arr['languages'],   PDO::PARAM_STR);
+        $sth->bindParam(1, $arr['name'], PDO::PARAM_STR);
 
         if(is_null($idProject)):
             $sth->execute();
             $returnValue = $this->dbh->lastInsertId() ? $this->dbh->lastInsertId() : 0;
         else:
-            $sth->bindParam(4, $idProject, PDO::PARAM_INT);
+            $sth->bindParam(2, $idProject, PDO::PARAM_INT);
             $sth->execute();
             $returnValue = $idProject;
         endif;
 
-        return $returnValue;*/
+        return $returnValue;
 
     }
-    
+
+
+    public function setIssuesStatus($idIssue, $status)
+    {
+
+        $sth = $this->dbh->prepare('UPDATE `issue` SET `status` = ? WHERE `id_issue` = ?');
+
+        $sth->bindParam(1, $status,     PDO::PARAM_STR);
+        $sth->bindParam(2, $idIssue,    PDO::PARAM_INT);        
+
+        return $sth->execute();
+
+    }
+
     /**
      * Removes project
      * 
@@ -227,8 +239,31 @@ class Bugmanager {
     }
 
 
-    
-    public function saveRelease($arr, $idRelease = null){}
+
+    public function saveTag($version, $idProject, $idTag = null)
+    {
+
+        if(is_null($idTag)):
+            $sth = $this->dbh->prepare('INSERT INTO `tag` (`version`, `id_project`) VALUES(?, ?)');
+        else:
+            $sth = $this->dbh->prepare('UPDATE `tag` SET `version` = ? WHERE `id_tag` = ?');
+        endif;
+
+        $sth->bindParam(1, $version, PDO::PARAM_STR);
+
+
+        if(is_null($idTag)):
+            $sth->bindParam(2, $idProject, PDO::PARAM_INT);
+            $sth->execute();
+            $returnValue = $this->dbh->lastInsertId() ? $this->dbh->lastInsertId() : 0;
+        else:
+            $sth->bindParam(2, $idTag, PDO::PARAM_INT);
+            $sth->execute();
+            $returnValue = $idTag;
+        endif;
+
+        return $returnValue;
+    }
     /**
      * 
      * @param integer $idProject
@@ -239,52 +274,93 @@ class Bugmanager {
      */
     public function saveIssue($arr, $idIssue = null)
     {
-        /*
-
-        $languages = $this->getLanguagesFromProject($idProject);
-
-        foreach ($languages as $language):
-            
-            if(isset($arr[$language])):
-                $value = !empty($arr[$language]) ? $arr[$language] : '';
-            
-                $sth = $this->dbh->prepare('INSERT INTO `translation` (`id_project`, `code`, `language`, `translation`) VALUES(?, ?, ?, ?)'
-                        . 'ON DUPLICATE KEY UPDATE `translation` = ?');
-                
-                $sth->bindParam(1, $idProject,  PDO::PARAM_INT);
-                $sth->bindParam(2, $code,       PDO::PARAM_STR);
-                $sth->bindParam(3, $language,   PDO::PARAM_STR);
-                $sth->bindParam(4, $value,      PDO::PARAM_STR);
-                $sth->bindParam(5, $value,      PDO::PARAM_STR);
-
-                if($sth->execute() === false):
-                    return false;
-                endif;
-            endif;
-        endforeach;
-
-        return true;*/
+        
+        $arr['id_project']  = !empty($arr['id_project'])  ? $arr['id_project']    : null;
+        $arr['id_tag']      = !empty($arr['id_tag'])      ? $arr['id_tag']        : null;
+        $arr['description'] = !empty($arr['description']) ? $arr['description']   : null;
+        $arr['type']        = !empty($arr['type'])        ? $arr['type']          : null;
+        $arr['created_by']  = !empty($arr['created_by'])  ? $arr['created_by']    : null;
+        $arr['assigned_to'] = !empty($arr['assigned_to']) ? $arr['assigned_to']   : null;
+        
+        
+        if(is_null($idIssue)):
+            return $this->insertIssue($arr);
+        else:
+            return $this->updateIssue($arr, $idIssue);
+        endif;
     }
     
-    /**
-     * @param integer $idProject
-     * @param string $code
+    private function insertIssue($arr)
+    {
+        $sql = '
+            INSERT INTO
+                `issue` (
+                    `id_project`,
+                    `id_tag`,
+                    `description`,
+                    `type`,
+                    `created_by`,
+                    `assigned_to`
+                )
+            VALUES(?, ?, ?, ?, 1, ?)';
+        $sth = $this->dbh->prepare($sql);
+        
+        $sth->bindParam(1, $arr['id_project'],  PDO::PARAM_INT);
+        $sth->bindParam(2, $arr['id_tag'],      PDO::PARAM_INT);
+        $sth->bindParam(3, $arr['description'], PDO::PARAM_STR);
+        $sth->bindParam(4, $arr['type'],        PDO::PARAM_STR);
+        $sth->bindParam(5, $arr['assigned_to'], PDO::PARAM_INT);
+
+        $sth->execute();
+
+        return $this->dbh->lastInsertId() ? $this->dbh->lastInsertId() : false;
+    }
+    
+    private function updateIssue($arr, $idIssue)
+    {
+
+        $sql = '
+            UPDATE
+                `issue`
+            SET
+                `id_tag`        = ?,
+                `description`   = ?,
+                `type`          = ?,
+                `assigned_to`   = ?
+            WHERE
+                `id_issue` = ?';
+
+        $sth = $this->dbh->prepare($sql);
+
+        $sth->bindParam(1, $arr['id_tag'],      PDO::PARAM_INT);
+        $sth->bindParam(2, $arr['description'], PDO::PARAM_STR);
+        $sth->bindParam(3, $arr['type'],        PDO::PARAM_STR);
+        $sth->bindParam(4, $arr['assigned_to'], PDO::PARAM_INT);
+        $sth->bindParam(5, $idIssue,            PDO::PARAM_INT);
+        
+        return $sth->execute();
+
+    }
+
+/**
+     * @param integer $idIssue
      * 
      * @return boolean
      */
     public function deleteIssue($idIssue)
-    {/*
-        $sth = $this->dbh->prepare('DELETE FROM `translation` WHERE `code` = ? and `id_project` = ?');
+    {
+        $sth = $this->dbh->prepare('DELETE FROM `issue` WHERE `id_issue` = ?');
 
-        $sth->bindParam(1, $code,       PDO::PARAM_STR);
-        $sth->bindParam(2, $idProject,  PDO::PARAM_INT);
+        $sth->bindParam(1, $idIssue, PDO::PARAM_INT);
  
         return $sth->execute();
-     * 
-     */
+     
     }
     
-    public function deleteRelease($idRelease){}
+    public function deleteTag($idTag)
+    {
+        
+    }
     
 }
 
@@ -338,73 +414,163 @@ class Response {
 $app['i18n']['en'] = array(
     'layout' => array(
         'title'             => 'Bugmanager',
+        'add_tag'       => 'Add/edit release/tag',
+        'tags'          => 'Releases/Tags',
         'name'              => 'Name',
+        'version'           => 'Version',
+        'description'       => 'Description',
         'manage'            => 'Manage',
         'clear'             => 'Clear',
         'add_project'       => 'Add/edit project',
         'delete'            => 'delete',
+        'tag'           => 'Release/Tag',
+        'assigned_to_user'  => 'Assigned to user',
+        'type'              => 'Type',
         'issue_search_placeholder'  => 'code',
         'save'              => 'Save'
         ),
     'bugmanager' => array(
         'project_saved' => 'Project saved!',
         'project_removed' => 'Project removed!',
+        'issue_status_updated' => 'Issue status updated',
+        'issue_removed' => 'Issue removed!',
+        'issue_saved' => 'Issue saved!',
+        'tag_saved' => 'Tag saved!',
     ),
     
     'errors' => array(
         'empty_id_project' => 'ID project not specified',
         'empty_project_name' => 'Project name not specified',
+        'empty_issue_status' => 'Issue status not specified',
+        'empty_issue_id' => 'Issue ID not specified',
+        'empty_id_tag' => 'Tag ID not specified',
+        'empty_tag_version' => 'Tag version not specified',
+        'cannot_update_issue_status' => 'Cannot update issue status',
     )
 );
+
+// Source: controllers/issue/delete.php
+
+
+$app['controllers']['issue/delete'] = function ($app, $request){
+
+    $idIssue = !empty($request['id_issue']) ? (int)$request['id_issue'] : null;
+
+    if(empty($idIssue)):
+        $result     = false;
+        $errorMsg   = $app['i18n']['errors']['empty_issue_id'];
+    else:
+        $result     = $app['bugmanager']->deleteIssue($idIssue);
+        $errorMsg   = $app['i18n']['errors']['cannot_update_issue_status'];
+    endif;
+    
+    if($result):
+        Response::responseWithSuccess(array(), $app['i18n']['bugmanager']['issue_removed']);
+    else:
+        Response::responseWithError($errorMsg);
+    endif;
+
+};
+
+// Source: controllers/issue/getall.php
+
+
+$app['controllers']['issue/getall'] = function ($app, $request){
+
+    $idProject = !empty($request['id_project']) ? (int)$request['id_project'] : null;
+
+    if(!is_null($idProject)):
+        $issues = $app['bugmanager']->getAllIssuesFromProject($idProject);
+        Response::responseWithSuccess(array('issues' => $issues));
+    else:
+        Response::responseWithError($app['i18n']['errors']['empty_id_project']);
+    endif;
+
+};
 
 // Source: controllers/issue/getone.php
 
 
+$app['controllers']['issue/getone'] = function ($app, $request){
 
-
-$app['controllers']['translation/getone'] = function ($app, $request){
+    $idProject  = !empty($request['id_project'])   ? $request['id_project']   : null;
+    $idIssue    = !empty($request['id_issue'])     ? $request['id_issue']     : null;
     
-    $code       = !empty($request['code'])          ? $request['code']              : null;
-    $idProject  = !empty($request['id_project'])    ? (int)$request['id_project']   : null;
-
-
-    $result = $app['foler']->getTranslation($idProject, $code);
-    Response::responseWithSuccess($result);
-
-};
-
-// Source: controllers/issue/save.php
-
-
-$isCodeValid = function($code) {
-
-    return preg_match('/^[a-z0-9_\.]+$/', $code) === 1 ? true : false;
-    
-};
-
-$app['controllers']['translation/save'] = function ($app, $request) use($isCodeValid) {
-
-    parse_str(urldecode($request['form']), $form);
-
-
-    $idProject  = !empty($form['id_project'])   ? $form['id_project']   : null;
-    $code       = !empty($form['code'])         ? $form['code']         : null;
-    $arr        = !empty($form['translation'])  ? $form['translation']  : array();
+    $result = true;
 
     if(empty($idProject)):
         $result     = false;
         $errorMsg   = $app['i18n']['errors']['empty_id_project'];
-    elseif(empty($code) or $isCodeValid($code) === false):
+    elseif(empty($idIssue)):
         $result     = false;
-        $errorMsg   = $app['i18n']['errors']['not_valid_project_code'];
+        $errorMsg   = $app['i18n']['errors']['empty_issue_id'];
     else:
-        $result     = $app['foler']->saveTranslation($idProject, $code, $arr);
-        $error      = $app['foler']->getError();
+        
+        $response = array();
+        $response['users']  = $app['bugmanager']->getAllUsers();
+        $response['tags']   = $app['bugmanager']->getAllTagsFromProject($idProject);
+        $response['issue']  = $app['bugmanager']->getIssue($idIssue);
+    endif;
+
+    if($result):
+        Response::responseWithSuccess($response);
+    else:
+        Response::responseWithError($errorMsg);
+    endif;
+
+};
+
+
+// Source: controllers/issue/save.php
+
+
+
+$app['controllers']['issue/save'] = function ($app, $request) {
+
+    parse_str(urldecode($request['form']), $arr);
+
+
+    $idIssue    = !empty($arr['id_issue'])   ? $arr['id_issue']   : null;
+    $arr['id_project'] = !empty($request['id_project']) ? (int)$request['id_project'] : null;
+
+    if(empty($idIssue)):
+        $result     = false;
+        $errorMsg   = $app['i18n']['errors']['empty_id_project'];
+    else:
+        $result     = $app['bugmanager']->saveIssue($arr, $idIssue);
+        $error      = $app['bugmanager']->getError();
         $errorMsg   = $error[2];
     endif;
 
     if($result):
-        Response::responseWithSuccess(array(), $app['i18n']['foler']['translation_saved']);
+        Response::responseWithSuccess(array(), $app['i18n']['bugmanager']['issue_saved']);
+    else:
+        Response::responseWithError($errorMsg);
+    endif;
+
+};
+
+// Source: controllers/issue/setstatus.php
+
+
+$app['controllers']['issue/setstatus'] = function ($app, $request){
+
+    $idIssue    = !empty($request['id_issue'])  ? (int)$request['id_issue']   : null;
+    $status     = !empty($request['status'])    ? $request['status']          : null;
+
+    if(empty($status)):
+        $result     = false;
+        $errorMsg   = $app['i18n']['errors']['empty_issue_status'];
+    elseif(empty($idIssue)):
+        $result     = false;
+        $errorMsg   = $app['i18n']['errors']['empty_issue_id'];
+    else:
+        $result     = $app['bugmanager']->setIssuesStatus($idIssue, $status);
+        $errorMsg   = $app['i18n']['errors']['cannot_update_issue_status'];
+    endif;
+    
+    if($result):
+        Response::responseWithSuccess(array(), $app['i18n']['bugmanager']['issue_status_updated']);
     else:
         Response::responseWithError($errorMsg);
     endif;
@@ -426,91 +592,19 @@ $app['controllers']['project/delete'] = function ($app, $request){
         $result     = false;
         $errorMsg   = $app['i18n']['errors']['empty_id_project'];
     else:
-        $result     = $app['foler']->deleteProject($idProject);
-        $error      = $app['foler']->getError();
+        $result     = $app['bugmanager']->deleteProject($idProject);
+        $error      = $app['bugmanager']->getError();
         $errorMsg   = $error[2];
     endif;
 
 
     if($result):
-        Response::responseWithSuccess(array(), $app['i18n']['foler']['project_removed']);
+        Response::responseWithSuccess(array(), $app['i18n']['bugmanager']['project_removed']);
     else:
         Response::responseWithError($errorMsg);
     endif;
 
 };
-
-// Source: controllers/project/export.php
-
-
-
-$app['controllers']['project/export'] = function ($app, $request){
-
-
-    $idProject  = !empty($request['id_project']) ? (int)$request['id_project'] : null;
-    $type       = (!empty($request['type']) && in_array($request['type'], array('php','yaml'))) ? $request['type'] : 'php';
-
-    
-    $project    = $app['foler']->getProjectById($idProject);
-    $languages  = $app['foler']->getLanguagesFromProject($idProject);
-    
-    
-    
-    $result = true;
-    $directory = $project['path'];
-    
-
-    if(empty($project['path']) or !  is_writable($directory)):
-        $result     = false;
-        $errorMsg   = $app['i18n']['errors']['project_path_not_writable'].': ' . $directory;
-    else:
-        
-        switch ($type) {
-            case 'php':
-                $export = new PHPExport();
-                break;
-
-            case 'yaml':
-                $export = new YAMLExport();
-                break;
-
-            default:
-                break;
-        }
-        
-        $records = $app['foler']->getAllTranslationsFromProject($idProject);
-
-        
-        foreach ($languages as $language):
-            $out = array();
-            
-        
-            foreach ($records as $record):
-                if($record['language'] == $language):
-                    joinStringToArr($record['code'], $record['translation'], $out);
-                endif;
-            endforeach;
-            
-            if($export->export($out, $directory, $language) === false):
-                $result     = false;
-                $errorMsg   = $app['i18n']['errors']['cannot_export_project']. ': ' . $language;
-            endif;
-        
-        endforeach;
-        
-        
-    endif;
-
-
-
-    if($result === true):
-        Response::responseWithSuccess(array(), $app['i18n']['foler']['project_exported']);
-    else:
-        Response::responseWithError($errorMsg);
-    endif;
-
-};
-
 
 // Source: controllers/project/getall.php
 
@@ -543,61 +637,34 @@ $app['controllers']['project/getone'] = function ($app, $request){
 // Source: controllers/project/save.php
 
 
-$isLanguagesValid =  function($languages) {
-    
-    $returnValue = true;
 
-    if(strpos($languages, ' ') !== false):
-        $returnValue = false;
-    endif;
-    
-    $uniqueArr = array();
-    
-    foreach (explode(',', $languages) as $value):
-        if(empty($value) or strlen($value) != 2 or isset($uniqueArr[$value])):
-            $returnValue = false;
-        endif;
-        $uniqueArr[$value] = 1;
-    endforeach;
-    
-    return $returnValue;
-
-};
-
-$app['controllers']['project/save'] = function ($app, $request) use ($isLanguagesValid){
+$app['controllers']['project/save'] = function ($app, $request) {
 
     parse_str($request['form'], $form);
 
     $idProject = !empty($form['id_project']) ? $form['id_project'] : null;
 
-    
-    if(empty($form['languages']) or $isLanguagesValid($form['languages']) === false):
-        $result     = false;
-        $errorMsg   = $app['i18n']['errors']['not_valid_project_languages'];
-    elseif(empty($form['path'])):
-        $result     = false;
-        $errorMsg   = $app['i18n']['errors']['empty_project_export_path'];
-    elseif(empty($form['name'])):
+    if(empty($form['name'])):
         $result     = false;
         $errorMsg   = $app['i18n']['errors']['empty_project_name'];
     else:
-        $result     = $app['foler']->saveProject($form, $idProject);
-        $error      = $app['foler']->getError();
+        $result     = $app['bugmanager']->saveProject($form, $idProject);
+        $error      = $app['bugmanager']->getError();
         $errorMsg   = $error[2];
     endif;
 
     if($result):
-        Response::responseWithSuccess(array('id_project' => $result), $app['i18n']['foler']['project_saved']);
+        Response::responseWithSuccess(array('id_project' => $result), $app['i18n']['bugmanager']['project_saved']);
     else:
         Response::responseWithError($errorMsg);
     endif;
     
 };
 
-// Source: controllers/release/delete.php
+// Source: controllers/tag/delete.php
 
 
-$app['controllers']['code/delete'] = function ($app, $request){
+$app['controllers']['tag/delete'] = function ($app, $request){
 
     $idProject  = !empty($request['id_project'])    ? (int)$request['id_project']   : null;
     $code       = !empty($request['code'])          ? $request['code']              : null;
@@ -610,33 +677,84 @@ $app['controllers']['code/delete'] = function ($app, $request){
         $result     = false;
         $errorMsg   = $app['i18n']['errors']['empty_code'];
     else:
-        $result = $app['foler']->deleteCode($idProject, $code);
-        $error      = $app['foler']->getError();
+        $result     = $app['bugmanager']->deleteCode($idProject, $code);
+        $error      = $app['bugmanager']->getError();
         $errorMsg   = $error[2];
     endif;
 
 
     if($result):
-        Response::responseWithSuccess(array(), $app['i18n']['foler']['code_removed']);
+        Response::responseWithSuccess(array(), $app['i18n']['bugmanager']['code_removed']);
     else:
         Response::responseWithError($errorMsg);
     endif;
     
 };
 
-// Source: controllers/release/search.php
+// Source: controllers/tag/getall.php
+
+
+$app['controllers']['tag/getall'] = function ($app, $request){
+    
+    $idProject = !empty($request['id_project']) ? (int)$request['id_project'] : null;
+
+    if(!is_null($idProject)):
+        $tags = $app['bugmanager']->getAllTagsFromProject($idProject);
+        Response::responseWithSuccess(array('tags' => $tags));
+    else:
+        Response::responseWithError($app['i18n']['errors']['empty_id_project']);
+    endif;
+    
+};
+
+// Source: controllers/tag/getone.php
 
 
 
 
-$app['controllers']['code/search'] = function ($app, $request){
+$app['controllers']['tag/getone'] = function ($app, $request){
+    
+    $idTag = !empty($request['id_tag']) ? (int)$request['id_tag'] : null;
 
-    $keyword    = !empty($request['keyword'])       ? $request['keyword']           : null;
-    $idProject  = !empty($request['id_project'])    ? (int)$request['id_project']   : null;
+    if(!is_null($idTag)):
+        $tag = $app['bugmanager']->getTag($idTag);
+        Response::responseWithSuccess(array('tag' => $tag));
+    else:
+        Response::responseWithError($app['i18n']['errors']['empty_id_tag']);
+    endif;
 
-    $codes = $app['foler']->getAllCodes($idProject, $keyword);
-    Response::responseWithSuccess(array('codes' => $codes));
+};
 
+// Source: controllers/tag/save.php
+
+
+
+$app['controllers']['tag/save'] = function ($app, $request) {
+
+    parse_str($request['form'], $form);
+
+    $idTag      = !empty($form['id_tag'])    ? $form['id_tag']   : null;
+    $version    = !empty($form['version'])   ? $form['version']  : null;
+    $idProject = !empty($request['id_project']) ? (int)$request['id_project'] : null;
+
+    if(empty($version)):
+        $result     = false;
+        $errorMsg   = $app['i18n']['errors']['empty_tag_version'];
+    elseif(empty($idProject)):
+        $result     = false;
+        $errorMsg   = $app['i18n']['errors']['empty_id_project'];
+    else:
+        $result     = $app['bugmanager']->saveTag($version, $idProject, $idTag);
+        $error      = $app['bugmanager']->getError();
+        $errorMsg   = $error[2];
+    endif;
+
+    if($result):
+        Response::responseWithSuccess(array('id_tag' => $result), $app['i18n']['bugmanager']['tag_saved']);
+    else:
+        Response::responseWithError($errorMsg);
+    endif;
+    
 };
 
 // Source: config/footer.php
@@ -696,9 +814,12 @@ endif;
                 display: none;
             }
         </style>
-        <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+        <!--<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/0.8.1/mustache.min.js"></script>
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">-->
+        <script src="jquery-1.10.2.js"></script>
+        <script src="mustache.min.js"></script>
+        <link rel="stylesheet" href="bootstrap.min.css">
 
     </head>
     <body onLoad="projects.reload()">
@@ -754,77 +875,154 @@ endif;
                             <input type="hidden" name="id_project" value="{{id_project}}">
                         {{/id_project}}
             
-                    <div class="form-group">
-                        <label class="col-sm-6 control-label"><?php echo $i18n['layout']['name']; ?></label>
-                        <div class="col-sm-6">
-                            <input class="form-control input-sm" type="text" name="name" value="{{name}}">
+                        <div class="form-group">
+                            <label class="col-sm-6 control-label"><?php echo $i18n['layout']['name']; ?></label>
+                            <div class="col-sm-6">
+                                <input class="form-control input-sm" type="text" name="name" value="{{name}}">
+                            </div>
                         </div>
-                    </div>
-                    <button type="button" onclick="projects.ProjectForm.save()" class="btn btn-success"><?php echo $i18n['layout']['save']; ?></button>
-                    <button type="reset" onclick="projects.ProjectForm.render()" class="btn btn-default"><?php echo $i18n['layout']['clear']; ?></button>
-                </form>
+                        <button type="button" onclick="projects.ProjectForm.save()" class="btn btn-success"><?php echo $i18n['layout']['save']; ?></button>
+                        <button type="reset" onclick="projects.ProjectForm.render()" class="btn btn-default"><?php echo $i18n['layout']['clear']; ?></button>
+                    </form>
+                </script>
+                
+                <h3><?php echo $i18n['layout']['tags']; ?></h3>
+                <hr>
+                
+                <div id="tagsBlock"></div>
+
+                <script id="tagsTemplate" type="x-tmpl-mustache">
+                    <table class="table table-condensed">
+                        <thead>
+                            <th>#</th>
+                            <th><?php echo $i18n['layout']['name']; ?></th>
+                            <th><?php echo $i18n['layout']['manage']; ?></th>
+                        </thead>
+                        <tbody>
+                            {{#tags}}
+                                <tr OnClick="tags.selectTag({{id_tag}}, $(this))" class="tag_block" id="tag_block_{{id_tag}}">
+                                    <td>{{id_tag}}</td>
+                                    <td>{{version}}</td>
+                                    <td>
+                                        <button class="btn btn-danger btn-xs" OnClick="tags.deleteTag({{id_tag}})"><?php echo $i18n['layout']['delete']; ?></button>
+                                    </td>
+                                </tr>
+                            {{/tags}}
+                                    
+                            {{^tags}}
+                                <tr>
+                                    <td colspan="4">{{i18n.no_tags}}</td>
+                                </tr>
+                            {{/tags}}
+                            
+                        </tbody>
+                    </table>
+                </script>
+                
+                <h3><?php echo $i18n['layout']['add_tag']; ?></h3>
+                <hr>
+                <div id="tagFormBlock"></div>
+                <script id="tagFormTemplate" type="x-tmpl-mustache">
+                    <form id="tagForm" class="form-horizontal">
+                        {{#id_tag}}
+                            <input type="hidden" name="id_tag" value="{{id_tag}}">
+                        {{/id_tag}}
+            
+                        <div class="form-group">
+                            <label class="col-sm-6 control-label"><?php echo $i18n['layout']['version']; ?></label>
+                            <div class="col-sm-6">
+                                <input class="form-control input-sm" type="text" name="version" value="{{version}}">
+                            </div>
+                        </div>
+                        <button type="button" onclick="tags.TagForm.save()" class="btn btn-success"><?php echo $i18n['layout']['save']; ?></button>
+                        <button type="reset" onclick="tags.TagForm.render()" class="btn btn-default"><?php echo $i18n['layout']['clear']; ?></button>
+                    </form>
                 </script>
 
             </div>
             <div class="col-md-1"></div>
-            <div class="col-md-2">
+            <div class="col-md-5">
                 <input type="text" class="form-control"
                        id="searchKeyword"
                        onkeyup="codes.SearchField.find($(this).val())"
                        placeholder="<?php echo $i18n['layout']['issue_search_placeholder']; ?>">
-                <div id="codesBlock"></div>
-                <script id="codesTemplate" type="x-tmpl-mustache">
+                <div id="issuesBlock"></div>
+                <script id="issuesTemplate" type="x-tmpl-mustache">
                     <table class="table table-condensed">
                         <thead>
-                            <th><?php echo $i18n['layout']['code']; ?></th>
+                            <th>#</th>
+                            <th><?php echo $i18n['layout']['description']; ?></th>
                             <th><?php echo $i18n['layout']['manage']; ?></th>
                         </thead>
                         <tbody>
-                            {{#codes}}
-                                <tr OnClick="codes.selectCode('{{code}}', $(this))" class="code_block">
-                                    <td>{{code}}</td>
-                                    <td><button class="btn btn-danger btn-xs" OnClick="codes.deleteCode('{{code}}', $('#searchKeyword').val())"><?php echo $i18n['layout']['delete']; ?></button></td>
+                            {{#issues}}
+                                <tr OnClick="issues.selectIssue({{id_issue}}, $(this))" class="issue_block" id="issue_block_{{id_issue}}">
+                                    <td>{{id_issue}}</td>
+                                    <td>{{description}}</td>
+                                    <td>
+                                        <button class="btn btn-success btn-xs" OnClick="issues.setIssueStatus({{id_issue}},'closed')">close</button>
+                                        <button class="btn btn-danger btn-xs" OnClick="issues.deleteIssue({{id_issue}})"><?php echo $i18n['layout']['delete']; ?></button>
+                                    </td>
                                 </tr>
-                            {{/codes}}
+                            {{/issues}}
                         </tbody>
                     </table>
                 </script>
-
-            </div>
-            <div class="col-md-1"></div>
-            <div class="col-md-4">
-                <div id="translationFormBlock"></div>
-                <script id="translationFormTemplate" type="x-tmpl-mustache">
-                    {{#id_project}}
-                        <div id="newTranslationButton">
-                            <button type="button" onclick="translation.render()" class="btn btn-default"><?php echo $i18n['layout']['new_translation']; ?></button>
+                
+                <div id="issueFormBlock"></div>
+                <script id="issueFormTemplate" type="x-tmpl-mustache">
+                    <form id="issueForm" class="form-horizontal">
+                        {{#issue.id_issue}}
+                            <input type="hidden" name="id_issue" value="{{issue.id_issue}}">
+                        {{/issue.id_issue}}
+            
+                        <div class="form-group">
+                            <label class="col-sm-6 control-label"><?php echo $i18n['layout']['description']; ?></label>
+                            <div class="col-sm-6">
+                                <textarea class="form-control input-sm" name="description">{{issue.description}}</textarea>
+                            </div>
                         </div>
-
-                        <form id="translationForm" class="form-horizontal">
-                            <input type="hidden" name="id_project" value="{{id_project}}">
-
+                        <div class="form-group">
+                            <label class="col-sm-6 control-label"><?php echo $i18n['layout']['type']; ?></label>
+                            <div class="col-sm-6">
+                                <select class="form-control input-sm" name="type">
+                                    {{#types}}
+                                        <option {{#selected}}selected{{/selected}} value="{{name}}">{{name}}</option>
+                                    {{/types}}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-6 control-label"><?php echo $i18n['layout']['assigned_to_user']; ?></label>
+                            <div class="col-sm-6">
+                                <select class="form-control input-sm" name="assigned_to">
+                                    {{#users}}
+                                        <option value="{{id_user}}">{{login}}</option>
+                                    {{/users}}
+                                </select>
+                            </div>
+                        </div>
+                        {{#tags}}
                             <div class="form-group">
-                                <label class="col-sm-2 control-label"><?php echo $i18n['layout']['code']; ?>:</label>
+                                <label class="col-sm-6 control-label"><?php echo $i18n['layout']['tag']; ?></label>
                                 <div class="col-sm-6">
-                                    <input class="form-control" type="text" name="code" id="code" value="{{code}}" required>
+                                    <select class="form-control input-sm" name="id_tag">
+                                        <option value=""></option>
+                                        {{#tags}}
+                                            <option {{#selected}}selected{{/selected}} value="{{id_tag}}">{{version}}</option>
+                                        {{/tags}}
+                                    </select>
                                 </div>
                             </div>
-
-                            {{#translations}}
-                                <div class="form-group">
-                                    <label class="col-sm-2 control-label">{{language}}:</label>
-                                    <div class="col-sm-6">
-                                        <textarea class="form-control"  name="translation[{{language}}]">{{translation}}</textarea>
-                                    </div>
-                                </div>
-                            {{/translations}}
-
-                            <button type="button" onclick="translation.save($('#code').val())" class="btn btn-success"><?php echo $i18n['layout']['save']; ?></button>
-
-                        </form>
-                    {{/id_project}}
+                        {{/tags}}
+                        <button type="button" onclick="issues.IssueForm.save()" class="btn btn-success"><?php echo $i18n['layout']['save']; ?></button>
+                        <button type="reset" onclick="issues.IssueForm.render()" class="btn btn-default"><?php echo $i18n['layout']['clear']; ?></button>
+                    </form>
                 </script>
+
             </div>
+            <div class="col-md-2"></div>
+
         </div>
         
         <div class="row">
@@ -871,6 +1069,7 @@ var locale = 'en';
 var i18n = {
     en: {
         no_projects: 'No projects yet. Start with adding new project in the form below',
+        no_tags: 'No tags yet.',
         no_codes: 'No codes found.',
     }
 };
@@ -881,7 +1080,7 @@ i18n = i18n[locale];
  
 
 
-var translation = {
+var issues = {
     save: function(code) {
 
         var data = $('#translationForm').serialize();
@@ -893,20 +1092,107 @@ var translation = {
 
     },
 
-    render: function(code) {
+    reload: function() {
 
-        var data = (code !== "undefined") ? {code: code, id_project:idSelectedProject} : {id_project:idSelectedProject};
-
-        sendRequest('translation/getone', data, function(response){
+        sendRequest('issue/getall', {id_project: idSelectedProject}, function(response){
             
             response.data.id_project = idSelectedProject;
 
-            var template = $('#translationFormTemplate').html();
+            var template = $('#issuesTemplate').html();
             var rendered = Mustache.render(template, response.data);
 
-            $('#translationFormBlock').html(rendered);
+            $('#issuesBlock').html(rendered);
         });
 
+    },
+    setIssueStatus: function(idIssue, status) {
+
+        sendRequest('issue/setstatus', {id_issue: idIssue, status: status}, function(response){
+            statusField.render(response.status);
+
+            if(response.status.state === 'Ok'){
+                issues.reload();
+            }
+        });
+    },
+    deleteIssue: function(idIssue) {
+
+        sendRequest('issue/delete', {id_issue: idIssue}, function(response){
+            statusField.render(response.status);
+
+            if(response.status.state === 'Ok'){
+                issues.reload();
+            }
+        });
+    },
+    selectIssue: function(idIssue) {
+
+        $('.issue_block').removeClass('success');
+        $('#issue_block_' + idIssue).addClass('success');
+
+        issues.IssueForm.render(idIssue);
+
+    },
+    IssueForm: {
+        save: function(){
+            var data = $('#issueForm').serialize();
+
+            sendRequest('issue/save', {form: data, id_project: idSelectedProject}, function(response){
+
+                statusField.render(response.status);
+
+                if(response.status.state === 'Ok'){
+                    issues.reload();
+
+                }
+
+            });
+        },
+
+        render: function(idIssue) {
+
+            var template = $('#issueFormTemplate').html();
+
+            if(idIssue === undefined) {
+
+                var rendered = Mustache.render(template);
+                $('#issueFormBlock').html(rendered);
+
+            } else {
+
+                sendRequest('issue/getone',{id_project: idSelectedProject, id_issue: idIssue}, function(response){
+
+                    response.data.types = [
+                            { name: 'bug' },
+                            { name: 'feature' }
+                        ];
+
+                    // Select type
+
+                    for (var i in response.data.types) {
+
+                        if(response.data.types[i].name === response.data.issue.type) {
+                            response.data.types[i].selected = true;
+                        }
+                    }
+
+                    // Select release
+
+
+                        for (var i in response.data.tags) {
+
+                            if(response.data.tags[i].id_tag === response.data.issue.id_tag) {
+                                response.data.tags[i].selected = true;
+                            }
+                        }
+                    
+
+                    var rendered = Mustache.render(template, response.data);
+                    $('#issueFormBlock').html(rendered);
+
+                });
+            }
+        }
     }
 };
 var idSelectedProject;
@@ -941,8 +1227,8 @@ var projects = {
         idSelectedProject = parseInt(idProject);
         projects.ProjectForm.render(idSelectedProject);
 
-        //translation.render();
-        //codes.SearchField.show();
+        issues.reload();
+        tags.reload();
 
     },
     export: function(idProject, type, ev) {
@@ -951,7 +1237,7 @@ var projects = {
         });
         ev.stopPropagation();
     },
-    
+
     
     ProjectForm: {
         save: function(){
@@ -995,63 +1281,6 @@ var projects = {
     }
 };
 
-var codes = {
-
-    deleteCode: function(code, searchKeyword) {
-        sendRequest('code/delete', {code:code, id_project: idSelectedProject}, function(response){
-
-            statusField.render(response.status);
-            codes.SearchField.find(searchKeyword);
-            translation.render();
-
-        });
-
-    },
-
-    selectCode: function(code, el) {
-        $('.code_block').removeClass('success');
-        el.addClass('success');
-        translation.render(code);
-    },
-    
-    CodeForm: {
-        save:   function(code) {
-            sendRequest('code/save', {code:code, id_project: idSelectedProject});
-        },
-        render: function() {
-
-            var template = $('#codeFormTemplate').html();
-            var rendered = Mustache.render(template);
-
-            $('#codeFormBlock').html(rendered);
-        },
-        hide:   function() {
-            $('#codeFormBlock').html('');
-        }
-    },
-    
-    
-    SearchField: {
-
-        find:   function(keyword) {
-            sendRequest('code/search', {keyword:keyword, id_project: idSelectedProject}, function(response){
-
-            var template = $('#codesTemplate').html();
-            var rendered = Mustache.render(template, response.data);
-
-            $('#codesBlock').html(rendered);
-        });
-        },
-        show: function() {
-            $('#searchKeyword').show();
-        },
-        hide: function() {
-            $('#searchKeyword').hide();
-        }
-        
-    }
-};
-
 var statusField = {
     el: $('#status_field'),
     setFail: function(message) {
@@ -1082,6 +1311,71 @@ var statusField = {
             this.setFail(status.message);
         }
     }
+};
+
+var tags = {
+
+    deleteTag: function(idTag) {
+        sendRequest('tag/delete', {id_tag:idTag, id_project: idSelectedProject}, function(response){
+
+            //statusField.render(response.status);
+
+        });
+
+    },
+
+    selectTag: function(idTag, el) {
+        $('.tag_block').removeClass('success');
+        el.addClass('success');
+        
+        tags.TagForm.render(idTag);
+
+    },
+
+    TagForm: {
+        save:   function() {
+
+            var data = $('#tagForm').serialize();
+            sendRequest('tag/save', {form: data, id_project: idSelectedProject}, function(response) {
+                statusField.render(response.status);
+                tags.reload();
+                
+            });
+        },
+        render: function(idTag) {
+
+            var template = $('#tagFormTemplate').html();
+
+            if(idTag === undefined) {
+
+                var rendered = Mustache.render(template);
+                $('#tagFormBlock').html(rendered);
+
+            } else {
+
+                sendRequest('tag/getone',{id_tag:idTag}, function(response){
+
+                    var rendered = Mustache.render(template, response.data.tag);
+                    $('#tagFormBlock').html(rendered);
+                });
+            }
+        },
+        hide:   function() {
+            $('#tagFormBlock').html('');
+        }
+    },
+    reload: function() {
+        sendRequest('tag/getall',{ id_project: idSelectedProject}, function(response){
+
+            response.data.i18n = i18n;
+            var template = $('#tagsTemplate').html();
+            var rendered = Mustache.render(template, response.data);
+
+            $('#tagsBlock').html(rendered);
+        });
+
+        tags.TagForm.render();
+    },
 };
 </script>
         <!-- /end -->

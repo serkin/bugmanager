@@ -77,61 +77,63 @@ class Bugmanager {
     }
 
 
-    /**
-     * Gets translation according with given code and idProject or all records
-     * 
-     * @param integer $idProject
-     * @param string $code
-     * @return array
-     */
-    public function getIssue($idIssue){/*
+    
+    public function getAllIssuesFromProject($idProject)
+    {
 
-        $languages = $this->getLanguagesFromProject($idProject);
+        $sth = $this->dbh->prepare("SELECT * FROM `issue` WHERE `id_project` = ? and `status` = 'open'");
+        $sth->bindParam(1, $idProject,  PDO::PARAM_INT);
+        //$sth->bindParam(2, 'open',      PDO::PARAM_STR);
+        $sth->execute();
 
-        $dbRecords = !is_null($code) ? $this->getCodeTranslation($idProject, $code) : array();
+        return $sth->fetchAll(PDO::FETCH_ASSOC);
+
+    }
+
+    public function getAllUsers()
+    {
+
+        $sth = $this->dbh->prepare("SELECT * FROM `user`");
+
+        $sth->execute();
+
+        return $sth->fetchAll(PDO::FETCH_ASSOC);
+
+    }
 
 
-        $returnValue = array();
-        $returnValue['code'] = $code;
+    public function getAllTagsFromProject($idProject)
+    {
+        $sth = $this->dbh->prepare("SELECT * FROM `tag` WHERE `id_project` = ?");
+        $sth->bindParam(1, $idProject, PDO::PARAM_INT);
 
-        foreach ($languages as $lang):
-            $returnValue['translations'][] = array(
-                'language'      => $lang,
-                'translation'   => !empty($dbRecords[$lang]) ? $dbRecords[$lang] : ''
-            );
-        endforeach;
+        $sth->execute();
 
-        return $returnValue;   */   
+        return $sth->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    public function getIssue($idIssue)
+    {
+
+        $sth = $this->dbh->prepare("SELECT * FROM `issue` WHERE `id_issue` = ?");
+        $sth->bindParam(1, $idIssue, PDO::PARAM_INT);
+
+        $sth->execute();
+
+        return $sth->fetch(PDO::FETCH_ASSOC);
 
     }
     
-    public function getAllIssuesFromProject($idProject)
-    {/*
-        
-        $sth = $this->dbh->prepare('SELECT * FROM `translation` WHERE `id_project` = ?');
-        $sth->bindParam(1, $idProject, PDO::PARAM_INT);
-        $sth->execute();
+    public function getTag($idTag)
+    {
 
-        return $sth->fetchAll(PDO::FETCH_ASSOC);*/
-
-    }
-
-
-    private function getAllReleasesFromProject($idProject)
-    {/*
-        $returnValue = array();
- 
-        $sth = $this->dbh->prepare('SELECT * FROM `translation` WHERE `id_project` = ? and `code` = ?');
-        $sth->bindParam(1, $idProject, PDO::PARAM_INT);
-        $sth->bindParam(2, $code, PDO::PARAM_STR);
+        $sth = $this->dbh->prepare("SELECT * FROM `tag` WHERE `id_tag` = ?");
+        $sth->bindParam(1, $idTag, PDO::PARAM_INT);
 
         $sth->execute();
 
-        foreach($sth->fetchAll(PDO::FETCH_ASSOC) as $record):
-            $returnValue[$record['language']] = $record['translation'];
-        endforeach;
+        return $sth->fetch(PDO::FETCH_ASSOC);
 
-        return $returnValue;*/
     }
 
     /**
@@ -159,31 +161,42 @@ class Bugmanager {
      * @return int|boolean False on error
      */
     public function saveProject($arr, $idProject = null)
-    {/*
+    {
 
         if(is_null($idProject)):
             $sth = $this->dbh->prepare('INSERT INTO `project` (`name`, `path`, `languages`) VALUES(?, ?, ?)');
         else:
-            $sth = $this->dbh->prepare('UPDATE `project` SET `name` = ?, `path` = ?, `languages` = ? WHERE `id_project` = ?');
+            $sth = $this->dbh->prepare('UPDATE `project` SET `name` = ? WHERE `id_project` = ?');
         endif;
 
-        $sth->bindParam(1, $arr['name'],        PDO::PARAM_STR);
-        $sth->bindParam(2, $arr['path'],        PDO::PARAM_STR);
-        $sth->bindParam(3, $arr['languages'],   PDO::PARAM_STR);
+        $sth->bindParam(1, $arr['name'], PDO::PARAM_STR);
 
         if(is_null($idProject)):
             $sth->execute();
             $returnValue = $this->dbh->lastInsertId() ? $this->dbh->lastInsertId() : 0;
         else:
-            $sth->bindParam(4, $idProject, PDO::PARAM_INT);
+            $sth->bindParam(2, $idProject, PDO::PARAM_INT);
             $sth->execute();
             $returnValue = $idProject;
         endif;
 
-        return $returnValue;*/
+        return $returnValue;
 
     }
-    
+
+
+    public function setIssuesStatus($idIssue, $status)
+    {
+
+        $sth = $this->dbh->prepare('UPDATE `issue` SET `status` = ? WHERE `id_issue` = ?');
+
+        $sth->bindParam(1, $status,     PDO::PARAM_STR);
+        $sth->bindParam(2, $idIssue,    PDO::PARAM_INT);        
+
+        return $sth->execute();
+
+    }
+
     /**
      * Removes project
      * 
@@ -198,8 +211,31 @@ class Bugmanager {
     }
 
 
-    
-    public function saveRelease($arr, $idRelease = null){}
+
+    public function saveTag($version, $idProject, $idTag = null)
+    {
+
+        if(is_null($idTag)):
+            $sth = $this->dbh->prepare('INSERT INTO `tag` (`version`, `id_project`) VALUES(?, ?)');
+        else:
+            $sth = $this->dbh->prepare('UPDATE `tag` SET `version` = ? WHERE `id_tag` = ?');
+        endif;
+
+        $sth->bindParam(1, $version, PDO::PARAM_STR);
+
+
+        if(is_null($idTag)):
+            $sth->bindParam(2, $idProject, PDO::PARAM_INT);
+            $sth->execute();
+            $returnValue = $this->dbh->lastInsertId() ? $this->dbh->lastInsertId() : 0;
+        else:
+            $sth->bindParam(2, $idTag, PDO::PARAM_INT);
+            $sth->execute();
+            $returnValue = $idTag;
+        endif;
+
+        return $returnValue;
+    }
     /**
      * 
      * @param integer $idProject
@@ -210,51 +246,92 @@ class Bugmanager {
      */
     public function saveIssue($arr, $idIssue = null)
     {
-        /*
-
-        $languages = $this->getLanguagesFromProject($idProject);
-
-        foreach ($languages as $language):
-            
-            if(isset($arr[$language])):
-                $value = !empty($arr[$language]) ? $arr[$language] : '';
-            
-                $sth = $this->dbh->prepare('INSERT INTO `translation` (`id_project`, `code`, `language`, `translation`) VALUES(?, ?, ?, ?)'
-                        . 'ON DUPLICATE KEY UPDATE `translation` = ?');
-                
-                $sth->bindParam(1, $idProject,  PDO::PARAM_INT);
-                $sth->bindParam(2, $code,       PDO::PARAM_STR);
-                $sth->bindParam(3, $language,   PDO::PARAM_STR);
-                $sth->bindParam(4, $value,      PDO::PARAM_STR);
-                $sth->bindParam(5, $value,      PDO::PARAM_STR);
-
-                if($sth->execute() === false):
-                    return false;
-                endif;
-            endif;
-        endforeach;
-
-        return true;*/
+        
+        $arr['id_project']  = !empty($arr['id_project'])  ? $arr['id_project']    : null;
+        $arr['id_tag']      = !empty($arr['id_tag'])      ? $arr['id_tag']        : null;
+        $arr['description'] = !empty($arr['description']) ? $arr['description']   : null;
+        $arr['type']        = !empty($arr['type'])        ? $arr['type']          : null;
+        $arr['created_by']  = !empty($arr['created_by'])  ? $arr['created_by']    : null;
+        $arr['assigned_to'] = !empty($arr['assigned_to']) ? $arr['assigned_to']   : null;
+        
+        
+        if(is_null($idIssue)):
+            return $this->insertIssue($arr);
+        else:
+            return $this->updateIssue($arr, $idIssue);
+        endif;
     }
     
-    /**
-     * @param integer $idProject
-     * @param string $code
+    private function insertIssue($arr)
+    {
+        $sql = '
+            INSERT INTO
+                `issue` (
+                    `id_project`,
+                    `id_tag`,
+                    `description`,
+                    `type`,
+                    `created_by`,
+                    `assigned_to`
+                )
+            VALUES(?, ?, ?, ?, 1, ?)';
+        $sth = $this->dbh->prepare($sql);
+        
+        $sth->bindParam(1, $arr['id_project'],  PDO::PARAM_INT);
+        $sth->bindParam(2, $arr['id_tag'],      PDO::PARAM_INT);
+        $sth->bindParam(3, $arr['description'], PDO::PARAM_STR);
+        $sth->bindParam(4, $arr['type'],        PDO::PARAM_STR);
+        $sth->bindParam(5, $arr['assigned_to'], PDO::PARAM_INT);
+
+        $sth->execute();
+
+        return $this->dbh->lastInsertId() ? $this->dbh->lastInsertId() : false;
+    }
+    
+    private function updateIssue($arr, $idIssue)
+    {
+
+        $sql = '
+            UPDATE
+                `issue`
+            SET
+                `id_tag`        = ?,
+                `description`   = ?,
+                `type`          = ?,
+                `assigned_to`   = ?
+            WHERE
+                `id_issue` = ?';
+
+        $sth = $this->dbh->prepare($sql);
+
+        $sth->bindParam(1, $arr['id_tag'],      PDO::PARAM_INT);
+        $sth->bindParam(2, $arr['description'], PDO::PARAM_STR);
+        $sth->bindParam(3, $arr['type'],        PDO::PARAM_STR);
+        $sth->bindParam(4, $arr['assigned_to'], PDO::PARAM_INT);
+        $sth->bindParam(5, $idIssue,            PDO::PARAM_INT);
+        
+        return $sth->execute();
+
+    }
+
+/**
+     * @param integer $idIssue
      * 
      * @return boolean
      */
     public function deleteIssue($idIssue)
-    {/*
-        $sth = $this->dbh->prepare('DELETE FROM `translation` WHERE `code` = ? and `id_project` = ?');
+    {
+        $sth = $this->dbh->prepare('DELETE FROM `issue` WHERE `id_issue` = ?');
 
-        $sth->bindParam(1, $code,       PDO::PARAM_STR);
-        $sth->bindParam(2, $idProject,  PDO::PARAM_INT);
+        $sth->bindParam(1, $idIssue, PDO::PARAM_INT);
  
         return $sth->execute();
-     * 
-     */
+     
     }
     
-    public function deleteRelease($idRelease){}
+    public function deleteTag($idTag)
+    {
+        
+    }
     
 }
