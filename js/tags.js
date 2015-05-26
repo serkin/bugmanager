@@ -1,57 +1,65 @@
 
-var codes = {
+var tags = {
 
-    deleteCode: function(code, searchKeyword) {
-        sendRequest('code/delete', {code:code, id_project: idSelectedProject}, function(response){
+    deleteTag: function(idTag) {
+        sendRequest('tag/delete', {id_tag:idTag, id_project: idSelectedProject}, function(response){
 
-            statusField.render(response.status);
-            codes.SearchField.find(searchKeyword);
-            translation.render();
+            //statusField.render(response.status);
 
         });
 
     },
 
-    selectCode: function(code, el) {
-        $('.code_block').removeClass('success');
+    selectTag: function(idTag, el) {
+        $('.tag_block').removeClass('success');
         el.addClass('success');
-        translation.render(code);
+        
+        tags.TagForm.render(idTag);
+
     },
-    
-    CodeForm: {
-        save:   function(code) {
-            sendRequest('code/save', {code:code, id_project: idSelectedProject});
+
+    TagForm: {
+        save:   function() {
+
+            var data = $('#tagForm').serialize();
+            sendRequest('tag/save', {form: data, id_project: idSelectedProject}, function(response) {
+                statusField.render(response.status);
+                tags.reload();
+                
+            });
         },
-        render: function() {
+        render: function(idTag) {
 
-            var template = $('#codeFormTemplate').html();
-            var rendered = Mustache.render(template);
+            var template = $('#tagFormTemplate').html();
 
-            $('#codeFormBlock').html(rendered);
+            if(idTag === undefined) {
+
+                var rendered = Mustache.render(template);
+                $('#tagFormBlock').html(rendered);
+
+            } else {
+
+                sendRequest('tag/getone',{id_tag:idTag}, function(response){
+
+                    var rendered = Mustache.render(template, response.data.tag);
+                    $('#tagFormBlock').html(rendered);
+                });
+            }
         },
         hide:   function() {
-            $('#codeFormBlock').html('');
+            $('#tagFormBlock').html('');
         }
     },
-    
-    
-    SearchField: {
+    reload: function() {
+        sendRequest('tag/getall',{ id_project: idSelectedProject}, function(response){
 
-        find:   function(keyword) {
-            sendRequest('code/search', {keyword:keyword, id_project: idSelectedProject}, function(response){
-
-            var template = $('#codesTemplate').html();
+            response.data.i18n = i18n;
+            var template = $('#tagsTemplate').html();
             var rendered = Mustache.render(template, response.data);
 
-            $('#codesBlock').html(rendered);
+            $('#tagsBlock').html(rendered);
         });
-        },
-        show: function() {
-            $('#searchKeyword').show();
-        },
-        hide: function() {
-            $('#searchKeyword').hide();
-        }
-        
-    }
+
+        tags.TagForm.render();
+    },
 };
