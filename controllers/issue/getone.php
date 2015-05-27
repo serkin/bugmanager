@@ -6,20 +6,17 @@ $app['controllers']['issue/getone'] = function ($app, $request){
     $idIssue    = !empty($request['id_issue'])     ? $request['id_issue']     : null;
     
     $result = true;
+    $response = array();
+    $response['issue_types'] = $app['config']['issue_types'];
 
     if(empty($idProject)):
         $result     = false;
         $errorMsg   = $app['i18n']['errors']['empty_id_project'];
-    elseif(empty($idIssue)):
-        $result     = false;
-        $errorMsg   = $app['i18n']['errors']['empty_issue_id'];
-    else:
-        
-        $response = array();
-        $response['users']  = $app['bugmanager']->getAllUsers();
-        $response['tags']   = $app['bugmanager']->getAllTagsFromProject($idProject);
-        $response['issue']  = $app['bugmanager']->getIssue($idIssue);
     endif;
+
+    $response['tags']   = !empty($idProject)    ? $app['bugmanager']->getAllTagsFromProject($idProject) : [];
+    $response['issue']  = !empty($idIssue)      ? $app['bugmanager']->getIssue($idIssue)                : [];
+
 
     if($result):
         Response::responseWithSuccess($response);
