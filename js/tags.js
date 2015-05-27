@@ -61,5 +61,5 @@ var tags = {
         });
 
         tags.TagForm.render();
-    },
+    }
 };
