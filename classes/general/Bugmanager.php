@@ -251,8 +251,6 @@ class Bugmanager {
         $arr['id_tag']      = !empty($arr['id_tag'])      ? $arr['id_tag']        : null;
         $arr['description'] = !empty($arr['description']) ? $arr['description']   : null;
         $arr['type']        = !empty($arr['type'])        ? $arr['type']          : null;
-        $arr['created_by']  = !empty($arr['created_by'])  ? $arr['created_by']    : null;
-        $arr['assigned_to'] = !empty($arr['assigned_to']) ? $arr['assigned_to']   : null;
         
         
         if(is_null($idIssue)):
@@ -270,18 +268,15 @@ class Bugmanager {
                     `id_project`,
                     `id_tag`,
                     `description`,
-                    `type`,
-                    `created_by`,
-                    `assigned_to`
+                    `type`
                 )
-            VALUES(?, ?, ?, ?, 1, ?)';
+            VALUES(?, ?, ?, ?)';
         $sth = $this->dbh->prepare($sql);
         
         $sth->bindParam(1, $arr['id_project'],  PDO::PARAM_INT);
         $sth->bindParam(2, $arr['id_tag'],      PDO::PARAM_INT);
         $sth->bindParam(3, $arr['description'], PDO::PARAM_STR);
         $sth->bindParam(4, $arr['type'],        PDO::PARAM_STR);
-        $sth->bindParam(5, $arr['assigned_to'], PDO::PARAM_INT);
 
         $sth->execute();
 
@@ -297,8 +292,7 @@ class Bugmanager {
             SET
                 `id_tag`        = ?,
                 `description`   = ?,
-                `type`          = ?,
-                `assigned_to`   = ?
+                `type`          = ?
             WHERE
                 `id_issue` = ?';
 
@@ -307,8 +301,7 @@ class Bugmanager {
         $sth->bindParam(1, $arr['id_tag'],      PDO::PARAM_INT);
         $sth->bindParam(2, $arr['description'], PDO::PARAM_STR);
         $sth->bindParam(3, $arr['type'],        PDO::PARAM_STR);
-        $sth->bindParam(4, $arr['assigned_to'], PDO::PARAM_INT);
-        $sth->bindParam(5, $idIssue,            PDO::PARAM_INT);
+        $sth->bindParam(4, $idIssue,            PDO::PARAM_INT);
         
         return $sth->execute();
 
