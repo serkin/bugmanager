@@ -31,6 +31,7 @@ var projects = {
         projects.ProjectForm.render(idSelectedProject);
 
         issues.reload();
+        issues.IssueForm.render();
         tags.reload();
 
     },
