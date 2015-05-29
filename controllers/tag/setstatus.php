@@ -1,23 +1,23 @@
 <?php
 
-$app['controllers']['issue/setstatus'] = function ($app, $request){
+$app['controllers']['tag/setstatus'] = function ($app, $request){
 
-    $idIssue    = !empty($request['id_issue'])  ? (int)$request['id_issue']   : null;
-    $status     = !empty($request['status'])    ? $request['status']          : null;
+    $idTag      = !empty($request['id_tag'])    ? $request['id_tag'] : null;
+    $status     = !empty($request['status'])    ? $request['status'] : null;
 
     if(empty($status)):
         $result     = false;
-        $errorMsg   = $app['i18n']['errors']['empty_issue_status'];
-    elseif(empty($idIssue)):
+        $errorMsg   = $app['i18n']['errors']['empty_tag_status'];
+    elseif(empty($idTag)):
         $result     = false;
-        $errorMsg   = $app['i18n']['errors']['empty_issue_id'];
+        $errorMsg   = $app['i18n']['errors']['empty_id_tag'];
     else:
-        $result     = $app['bugmanager']->setIssuesStatus($idIssue, $status);
-        $errorMsg   = $app['i18n']['errors']['cannot_update_issue_status'];
+        $result     = $app['bugmanager']->setTagStatus($idTag, $status);
+        $errorMsg   = $app['i18n']['errors']['cannot_update_tag_status'];
     endif;
     
     if($result):
-        Response::responseWithSuccess(array(), $app['i18n']['bugmanager']['issue_status_updated']);
+        Response::responseWithSuccess(array(), $app['i18n']['bugmanager']['tag_status_updated']);
     else:
         Response::responseWithError($errorMsg);
     endif;
