@@ -1,7 +1,5 @@
 <?php
 
-
-
 $app['controllers']['tag/getone'] = function ($app, $request){
     
     $idTag = !empty($request['id_tag']) ? (int)$request['id_tag'] : null;

@@ -5,9 +5,9 @@ $app['controllers']['tag/save'] = function ($app, $request) {
 
     parse_str($request['form'], $form);
 
-    $idTag      = !empty($form['id_tag'])    ? $form['id_tag']   : null;
-    $version    = !empty($form['version'])   ? $form['version']  : null;
-    $idProject = !empty($request['id_project']) ? (int)$request['id_project'] : null;
+    $idTag      = !empty($form['id_tag'])           ? $form['id_tag']               : null;
+    $version    = !empty($form['version'])          ? $form['version']              : null;
+    $idProject  = !empty($request['id_project'])    ? (int)$request['id_project']   : null;
 
     if(empty($version)):
         $result     = false;

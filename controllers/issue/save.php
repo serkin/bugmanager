@@ -6,7 +6,7 @@ $app['controllers']['issue/save'] = function ($app, $request) {
     parse_str(urldecode($request['form']), $arr);
 
 
-    $idIssue    = !empty($arr['id_issue'])          ? $arr['id_issue']              : null;
+    $idIssue            = !empty($arr['id_issue'])          ? $arr['id_issue']              : null;
     $arr['id_project']  = !empty($request['id_project'])    ? (int)$request['id_project']   : null;
 
     if(empty($arr['id_project'])):
