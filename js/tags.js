@@ -50,6 +50,16 @@ var tags = {
             $('#tagFormBlock').html('');
         }
     },
+    setTagStatus: function(idTag, status) {
+
+        sendRequest('tag/setstatus', {id_tag: idTag, status: status}, function(response){
+            statusField.render(response.status);
+
+            if(response.status.state === 'Ok'){
+                tags.reload();
+            }
+        });
+    },
     reload: function() {
         sendRequest('tag/getall',{ id_project: idSelectedProject}, function(response){
 
