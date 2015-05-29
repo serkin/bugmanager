@@ -165,7 +165,7 @@ class Bugmanager {
     {
 
         if(is_null($idProject)):
-            $sth = $this->dbh->prepare('INSERT INTO `project` (`name`, `path`, `languages`) VALUES(?, ?, ?)');
+            $sth = $this->dbh->prepare('INSERT INTO `project` (`name`) VALUES(?)');
         else:
             $sth = $this->dbh->prepare('UPDATE `project` SET `name` = ? WHERE `id_project` = ?');
         endif;
