@@ -1,4 +1,4 @@
-#Web based single file bug tracker for team of one
+#Single-file bug tracker for team of one
 
 To get started you need:
 * Created database and user in your MySQL server 
@@ -13,7 +13,7 @@ $app['config'] = array(
     'db' => array(
         'dsn'       => 'mysql:dbname=bugmanager;host=localhost',
         'user'      => 'bugmanager',
-        'password'  => ''
+        'password'  => '*******'
     ),
     'url'           => $_SERVER['PHP_SELF'],
     'debug'         => false,
