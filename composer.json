@@ -1,9 +1,9 @@
 {
-    "name": "serkin/foler",
-    "type": "project",
-    "description": "Single page translation system for websites",
-    "keywords": ["localization","i18n", "translation"],
-    "homepage": "https://github.com/serkin/foler",
+    "name": "serkin/bugmanager",
+    "type": "application",
+    "description": "Single-file bug tracker for team of one",
+    "keywords": ["bug","bug tracker"],
+    "homepage": "https://github.com/serkin/bugmanager",
     "license": "MIT",
     "authors": [
         {
