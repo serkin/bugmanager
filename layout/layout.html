@@ -140,6 +140,7 @@
                                             <td>{{id_tag}}</td>
                                             <td>{{version}}</td>
                                             <td>
+                                                <button class="btn btn-success btn-xs" OnClick="tags.setTagStatus({{id_tag}},'released')">release</button>
                                                 <button class="btn btn-danger btn-xs" OnClick="tags.deleteTag({{id_tag}})"><?php echo $i18n['layout']['delete']; ?></button>
                                             </td>
                                         </tr>

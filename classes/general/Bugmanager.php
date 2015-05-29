@@ -102,10 +102,11 @@ class Bugmanager {
     }
 
 
-    public function getAllTagsFromProject($idProject)
+    public function getAllTagsFromProject($idProject, $status = 'open')
     {
-        $sth = $this->dbh->prepare("SELECT * FROM `tag` WHERE `id_project` = ?");
-        $sth->bindParam(1, $idProject, PDO::PARAM_INT);
+        $sth = $this->dbh->prepare("SELECT * FROM `tag` WHERE `id_project` = ? and `status` = ?");
+        $sth->bindParam(1, $idProject,  PDO::PARAM_INT);
+        $sth->bindParam(2, $status,     PDO::PARAM_STR);
 
         $sth->execute();
 
@@ -184,6 +185,17 @@ class Bugmanager {
 
     }
 
+    public function setTagStatus($idTag, $status)
+    {
+
+        $sth = $this->dbh->prepare('UPDATE `tag` SET `status` = ? WHERE `id_tag` = ?');
+
+        $sth->bindParam(1, $status, PDO::PARAM_STR);
+        $sth->bindParam(2, $idTag,  PDO::PARAM_INT);
+
+        return $sth->execute();
+
+    }
 
     public function setIssuesStatus($idIssue, $status)
     {

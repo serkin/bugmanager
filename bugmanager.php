@@ -134,10 +134,11 @@ class Bugmanager {
     }
 
 
-    public function getAllTagsFromProject($idProject)
+    public function getAllTagsFromProject($idProject, $status = 'open')
     {
-        $sth = $this->dbh->prepare("SELECT * FROM `tag` WHERE `id_project` = ?");
-        $sth->bindParam(1, $idProject, PDO::PARAM_INT);
+        $sth = $this->dbh->prepare("SELECT * FROM `tag` WHERE `id_project` = ? and `status` = ?");
+        $sth->bindParam(1, $idProject,  PDO::PARAM_INT);
+        $sth->bindParam(2, $status,     PDO::PARAM_STR);
 
         $sth->execute();
 
@@ -216,6 +217,17 @@ class Bugmanager {
 
     }
 
+    public function setTagStatus($idTag, $status)
+    {
+
+        $sth = $this->dbh->prepare('UPDATE `tag` SET `status` = ? WHERE `id_tag` = ?');
+
+        $sth->bindParam(1, $status, PDO::PARAM_STR);
+        $sth->bindParam(2, $idTag,  PDO::PARAM_INT);
+
+        return $sth->execute();
+
+    }
 
     public function setIssuesStatus($idIssue, $status)
     {
@@ -433,6 +445,7 @@ $app['i18n']['en'] = array(
         'issue_removed' => 'Issue removed!',
         'issue_saved' => 'Issue saved!',
         'tag_saved' => 'Tag saved!',
+        'tag_status_updated' => 'Tag status updated!',
     ),
     
     'errors' => array(
@@ -441,8 +454,10 @@ $app['i18n']['en'] = array(
         'empty_issue_status' => 'Issue status not specified',
         'empty_issue_id' => 'Issue ID not specified',
         'empty_id_tag' => 'Tag ID not specified',
+        'empty_tag_status' => 'Tag status not specified',
         'empty_tag_version' => 'Tag version not specified',
         'cannot_update_issue_status' => 'Cannot update issue status',
+        'cannot_update_tag_status' => 'Cannot update tag status',
     )
 );
 
@@ -751,6 +766,33 @@ $app['controllers']['tag/save'] = function ($app, $request) {
     
 };
 
+// Source: controllers/tag/setstatus.php
+
+
+$app['controllers']['tag/setstatus'] = function ($app, $request){
+
+    $idTag      = !empty($request['id_tag'])    ? $request['id_tag'] : null;
+    $status     = !empty($request['status'])    ? $request['status'] : null;
+
+    if(empty($status)):
+        $result     = false;
+        $errorMsg   = $app['i18n']['errors']['empty_tag_status'];
+    elseif(empty($idTag)):
+        $result     = false;
+        $errorMsg   = $app['i18n']['errors']['empty_id_tag'];
+    else:
+        $result     = $app['bugmanager']->setTagStatus($idTag, $status);
+        $errorMsg   = $app['i18n']['errors']['cannot_update_tag_status'];
+    endif;
+    
+    if($result):
+        Response::responseWithSuccess(array(), $app['i18n']['bugmanager']['tag_status_updated']);
+    else:
+        Response::responseWithError($errorMsg);
+    endif;
+
+};
+
 // Source: config/footer.php
 
 
@@ -913,6 +955,7 @@ endif;
                                             <td>{{id_tag}}</td>
                                             <td>{{version}}</td>
                                             <td>
+                                                <button class="btn btn-success btn-xs" OnClick="tags.setTagStatus({{id_tag}},'released')">release</button>
                                                 <button class="btn btn-danger btn-xs" OnClick="tags.deleteTag({{id_tag}})"><?php echo $i18n['layout']['delete']; ?></button>
                                             </td>
                                         </tr>
@@ -1356,6 +1399,16 @@ var tags = {
         hide:   function() {
             $('#tagFormBlock').html('');
         }
+    },
+    setTagStatus: function(idTag, status) {
+
+        sendRequest('tag/setstatus', {id_tag: idTag, status: status}, function(response){
+            statusField.render(response.status);
+
+            if(response.status.state === 'Ok'){
+                tags.reload();
+            }
+        });
     },
     reload: function() {
         sendRequest('tag/getall',{ id_project: idSelectedProject}, function(response){
