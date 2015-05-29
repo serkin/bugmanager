@@ -11,12 +11,16 @@ Open `bugmanager.php` and change your db credentials
 ```php
 $app['config'] = array(
     'db' => array(
-        'dsn'      => 'mysql:dbname=bugmanager;host=localhost',
-        'user'      => 'bugmanaher',
-        'password'  => '*********'
+        'dsn'       => 'mysql:dbname=bugmanager;host=localhost',
+        'user'      => 'bugmanager',
+        'password'  => ''
     ),
-    'url' => $_SERVER['PHP_SELF'],
-    'debug' => false
+    'url'           => $_SERVER['PHP_SELF'],
+    'debug'         => false,
+    'issue_types'   => array(
+        array('type' => 'bug'),
+        array('type' => 'feature')
+    )
 );
 ```
 ## Screenshots
