@@ -14,8 +14,8 @@ $app['controllers']['issue/getone'] = function ($app, $request){
         $errorMsg   = $app['i18n']['errors']['empty_id_project'];
     endif;
 
-    $response['tags']   = !empty($idProject)    ? $app['bugmanager']->getAllTagsFromProject($idProject) : [];
-    $response['issue']  = !empty($idIssue)      ? $app['bugmanager']->getIssue($idIssue)                : [];
+    $response['tags']   = !empty($idProject)    ? $app['bugmanager']->getAllTagsFromProject($idProject) : array();
+    $response['issue']  = !empty($idIssue)      ? $app['bugmanager']->getIssue($idIssue)                : array();
 
 
     if($result):

@@ -1,20 +1,20 @@
 <?php
 
-$app = [];
+$app = array();
 
-$app['config'] = [
-    'db' => [
+$app['config'] = array(
+    'db' => array(
         'dsn'       => 'mysql:dbname=bugmanager;host=localhost',
-        'user'      => 'root',
+        'user'      => 'bugmanager',
         'password'  => ''
-    ],
+    ),
     'url'           => $_SERVER['PHP_SELF'],
     'debug'         => false,
-    'issue_types'   => [
-        ['type' => 'bug'],
-        ['type' => 'feature']
-    ]
-];
+    'issue_types'   => array(
+        array('type' => 'bug'),
+        array('type' => 'feature')
+    )
+);
 
 
 
