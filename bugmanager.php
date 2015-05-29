@@ -2,21 +2,21 @@
 // Source: config/header.php
 
 
-$app = [];
+$app = array();
 
-$app['config'] = [
-    'db' => [
+$app['config'] = array(
+    'db' => array(
         'dsn'       => 'mysql:dbname=bugmanager;host=localhost',
-        'user'      => 'root',
+        'user'      => 'bugmanager',
         'password'  => ''
-    ],
+    ),
     'url'           => $_SERVER['PHP_SELF'],
     'debug'         => false,
-    'issue_types'   => [
-        ['type' => 'bug'],
-        ['type' => 'feature']
-    ]
-];
+    'issue_types'   => array(
+        array('type' => 'bug'),
+        array('type' => 'feature')
+    )
+);
 
 
 
@@ -197,7 +197,7 @@ class Bugmanager {
     {
 
         if(is_null($idProject)):
-            $sth = $this->dbh->prepare('INSERT INTO `project` (`name`, `path`, `languages`) VALUES(?, ?, ?)');
+            $sth = $this->dbh->prepare('INSERT INTO `project` (`name`) VALUES(?)');
         else:
             $sth = $this->dbh->prepare('UPDATE `project` SET `name` = ? WHERE `id_project` = ?');
         endif;
@@ -517,8 +517,8 @@ $app['controllers']['issue/getone'] = function ($app, $request){
         $errorMsg   = $app['i18n']['errors']['empty_id_project'];
     endif;
 
-    $response['tags']   = !empty($idProject)    ? $app['bugmanager']->getAllTagsFromProject($idProject) : [];
-    $response['issue']  = !empty($idIssue)      ? $app['bugmanager']->getIssue($idIssue)                : [];
+    $response['tags']   = !empty($idProject)    ? $app['bugmanager']->getAllTagsFromProject($idProject) : array();
+    $response['issue']  = !empty($idIssue)      ? $app['bugmanager']->getIssue($idIssue)                : array();
 
 
     if($result):
@@ -539,7 +539,7 @@ $app['controllers']['issue/save'] = function ($app, $request) {
     parse_str(urldecode($request['form']), $arr);
 
 
-    $idIssue    = !empty($arr['id_issue'])          ? $arr['id_issue']              : null;
+    $idIssue            = !empty($arr['id_issue'])          ? $arr['id_issue']              : null;
     $arr['id_project']  = !empty($request['id_project'])    ? (int)$request['id_project']   : null;
 
     if(empty($arr['id_project'])):
@@ -593,9 +593,7 @@ $app['controllers']['issue/setstatus'] = function ($app, $request){
 
 $app['controllers']['project/delete'] = function ($app, $request){
 
-
     $idProject = !empty($request['id_project']) ? (int)$request['id_project'] : null;    
-
 
     if(empty($idProject)):
         $result     = false;
@@ -719,8 +717,6 @@ $app['controllers']['tag/getall'] = function ($app, $request){
 // Source: controllers/tag/getone.php
 
 
-
-
 $app['controllers']['tag/getone'] = function ($app, $request){
     
     $idTag = !empty($request['id_tag']) ? (int)$request['id_tag'] : null;
@@ -742,9 +738,9 @@ $app['controllers']['tag/save'] = function ($app, $request) {
 
     parse_str($request['form'], $form);
 
-    $idTag      = !empty($form['id_tag'])    ? $form['id_tag']   : null;
-    $version    = !empty($form['version'])   ? $form['version']  : null;
-    $idProject = !empty($request['id_project']) ? (int)$request['id_project'] : null;
+    $idTag      = !empty($form['id_tag'])           ? $form['id_tag']               : null;
+    $version    = !empty($form['version'])          ? $form['version']              : null;
+    $idProject  = !empty($request['id_project'])    ? (int)$request['id_project']   : null;
 
     if(empty($version)):
         $result     = false;
@@ -857,6 +853,7 @@ endif;
             box-shadow:  0px 0px 0px 0px #000;
 }
             legend.scheduler-border {
+                font-size: 12pt;
     width:inherit; /* Or auto */
     padding:0 10px; /* To give a bit of padding on the left and right */
     border-bottom:none;
