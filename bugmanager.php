@@ -862,12 +862,9 @@ endif;
     border-bottom:none;
 }
         </style>
-        <!--<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+        <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/0.8.1/mustache.min.js"></script>
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">-->
-        <script src="jquery-1.10.2.js"></script>
-        <script src="mustache.min.js"></script>
-        <link rel="stylesheet" href="bootstrap.min.css">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
 
     </head>
     <body onLoad="projects.reload()">
