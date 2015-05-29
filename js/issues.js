@@ -72,46 +72,38 @@ var issues = {
         render: function(idIssue) {
 
             var template = $('#issueFormTemplate').html();
+            
 
             if(idIssue === undefined) {
+                var idIssue = null;
+            }
 
-                var rendered = Mustache.render(template);
+
+            sendRequest('issue/getone',{id_project: idSelectedProject, id_issue: idIssue}, function(response){
+
+
+                // Select type
+
+                for (var i in response.data.issue_types) {
+
+                    if(response.data.issue_types[i].type === response.data.issue.type) {
+                        response.data.issue_types[i].selected = true;
+                    }
+                }
+
+                // Select release
+
+                for (var i in response.data.tags) {
+
+                    if(response.data.tags[i].id_tag === response.data.issue.id_tag) {
+                        response.data.tags[i].selected = true;
+                    }
+                }
+
+                var rendered = Mustache.render(template, response.data);
                 $('#issueFormBlock').html(rendered);
 
-            } else {
-
-                sendRequest('issue/getone',{id_project: idSelectedProject, id_issue: idIssue}, function(response){
-
-                    response.data.types = [
-                            { name: 'bug' },
-                            { name: 'feature' }
-                        ];
-
-                    // Select type
-
-                    for (var i in response.data.types) {
-
-                        if(response.data.types[i].name === response.data.issue.type) {
-                            response.data.types[i].selected = true;
-                        }
-                    }
-
-                    // Select release
-
-
-                        for (var i in response.data.tags) {
-
-                            if(response.data.tags[i].id_tag === response.data.issue.id_tag) {
-                                response.data.tags[i].selected = true;
-                            }
-                        }
-                    
-
-                    var rendered = Mustache.render(template, response.data);
-                    $('#issueFormBlock').html(rendered);
-
-                });
-            }
+            });
         }
     }
 };

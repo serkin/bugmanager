@@ -7,7 +7,7 @@ $app['i18n']['en'] = array(
         'add_tag'       => 'Add/edit release/tag',
         'tags'          => 'Releases/Tags',
         'name'              => 'Name',
-        'version'           => 'Version',
+        'version'           => 'Release version',
         'description'       => 'Description',
         'manage'            => 'Manage',
         'clear'             => 'Clear',
@@ -26,6 +26,7 @@ $app['i18n']['en'] = array(
         'issue_removed' => 'Issue removed!',
         'issue_saved' => 'Issue saved!',
         'tag_saved' => 'Tag saved!',
+        'tag_status_updated' => 'Tag status updated!',
     ),
     
     'errors' => array(
@@ -34,7 +35,9 @@ $app['i18n']['en'] = array(
         'empty_issue_status' => 'Issue status not specified',
         'empty_issue_id' => 'Issue ID not specified',
         'empty_id_tag' => 'Tag ID not specified',
+        'empty_tag_status' => 'Tag status not specified',
         'empty_tag_version' => 'Tag version not specified',
         'cannot_update_issue_status' => 'Cannot update issue status',
+        'cannot_update_tag_status' => 'Cannot update tag status',
     )
 );

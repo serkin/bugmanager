@@ -34,20 +34,30 @@
             #searchKeyword {
                 display: none;
             }
+            fieldset.scheduler-border {
+    border: 1px groove #ddd !important;
+    padding: 0 1.4em 1.4em 1.4em !important;
+    margin: 10px 0 1.5em 0 !important;
+    -webkit-box-shadow:  0px 0px 0px 0px #000;
+            box-shadow:  0px 0px 0px 0px #000;
+}
+            legend.scheduler-border {
+                font-size: 12pt;
+    width:inherit; /* Or auto */
+    padding:0 10px; /* To give a bit of padding on the left and right */
+    border-bottom:none;
+}
         </style>
-        <!--<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+        <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/0.8.1/mustache.min.js"></script>
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">-->
-        <script src="jquery-1.10.2.js"></script>
-        <script src="mustache.min.js"></script>
-        <link rel="stylesheet" href="bootstrap.min.css">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
 
     </head>
     <body onLoad="projects.reload()">
 
         <div class="row">
             <div class="col-md-8">
-                <h4><?php echo $i18n['layout']['title']; ?></h4>
+                <h4><a href="https://github.com/serkin/bugmanager" target="_blank"><?php echo $i18n['layout']['title']; ?></a></h4>
             </div>
             <div class="col-md-3">
                 <div id="status_field">&nbsp;</div>
@@ -87,86 +97,92 @@
                     </table>
                 </script>
 
-                <h3><?php echo $i18n['layout']['add_project']; ?></h3>
-                <hr>
-                <div id="projectFormBlock"></div>
-                <script id="projectFormTemplate" type="x-tmpl-mustache">
-                    <form id="projectForm" class="form-horizontal">
-                        {{#id_project}}
-                            <input type="hidden" name="id_project" value="{{id_project}}">
-                        {{/id_project}}
-            
-                        <div class="form-group">
-                            <label class="col-sm-6 control-label"><?php echo $i18n['layout']['name']; ?></label>
-                            <div class="col-sm-6">
-                                <input class="form-control input-sm" type="text" name="name" value="{{name}}">
-                            </div>
-                        </div>
-                        <button type="button" onclick="projects.ProjectForm.save()" class="btn btn-success"><?php echo $i18n['layout']['save']; ?></button>
-                        <button type="reset" onclick="projects.ProjectForm.render()" class="btn btn-default"><?php echo $i18n['layout']['clear']; ?></button>
-                    </form>
-                </script>
-                
-                <h3><?php echo $i18n['layout']['tags']; ?></h3>
-                <hr>
-                
-                <div id="tagsBlock"></div>
+                <fieldset class="scheduler-border">
+                    <legend class="scheduler-border"><?php echo $i18n['layout']['add_project']; ?></legend>
 
-                <script id="tagsTemplate" type="x-tmpl-mustache">
-                    <table class="table table-condensed">
-                        <thead>
-                            <th>#</th>
-                            <th><?php echo $i18n['layout']['name']; ?></th>
-                            <th><?php echo $i18n['layout']['manage']; ?></th>
-                        </thead>
-                        <tbody>
-                            {{#tags}}
-                                <tr OnClick="tags.selectTag({{id_tag}}, $(this))" class="tag_block" id="tag_block_{{id_tag}}">
-                                    <td>{{id_tag}}</td>
-                                    <td>{{version}}</td>
-                                    <td>
-                                        <button class="btn btn-danger btn-xs" OnClick="tags.deleteTag({{id_tag}})"><?php echo $i18n['layout']['delete']; ?></button>
-                                    </td>
-                                </tr>
-                            {{/tags}}
-                                    
-                            {{^tags}}
-                                <tr>
-                                    <td colspan="4">{{i18n.no_tags}}</td>
-                                </tr>
-                            {{/tags}}
-                            
-                        </tbody>
-                    </table>
-                </script>
-                
-                <h3><?php echo $i18n['layout']['add_tag']; ?></h3>
-                <hr>
-                <div id="tagFormBlock"></div>
-                <script id="tagFormTemplate" type="x-tmpl-mustache">
-                    <form id="tagForm" class="form-horizontal">
-                        {{#id_tag}}
-                            <input type="hidden" name="id_tag" value="{{id_tag}}">
-                        {{/id_tag}}
-            
-                        <div class="form-group">
-                            <label class="col-sm-6 control-label"><?php echo $i18n['layout']['version']; ?></label>
-                            <div class="col-sm-6">
-                                <input class="form-control input-sm" type="text" name="version" value="{{version}}">
+                    <div id="projectFormBlock"></div>
+                    <script id="projectFormTemplate" type="x-tmpl-mustache">
+                        <form id="projectForm" class="form-horizontal">
+                            {{#id_project}}
+                                <input type="hidden" name="id_project" value="{{id_project}}">
+                            {{/id_project}}
+
+                            <div class="form-group">
+                                <label class="col-sm-6 control-label"><?php echo $i18n['layout']['name']; ?></label>
+                                <div class="col-sm-6">
+                                    <input class="form-control input-sm" type="text" name="name" value="{{name}}">
+                                </div>
                             </div>
-                        </div>
-                        <button type="button" onclick="tags.TagForm.save()" class="btn btn-success"><?php echo $i18n['layout']['save']; ?></button>
-                        <button type="reset" onclick="tags.TagForm.render()" class="btn btn-default"><?php echo $i18n['layout']['clear']; ?></button>
-                    </form>
-                </script>
+                            <button type="button" onclick="projects.ProjectForm.save()" class="btn btn-success"><?php echo $i18n['layout']['save']; ?></button>
+                            <button type="reset" onclick="projects.ProjectForm.render()" class="btn btn-default"><?php echo $i18n['layout']['clear']; ?></button>
+                        </form>
+                    </script>
+                </fieldset>
+                
+                
+                
+                    <div id="tagsBlock"></div>
+
+                    <script id="tagsTemplate" type="x-tmpl-mustache">
+                        <fieldset class="scheduler-border">
+                            <legend class="scheduler-border"><?php echo $i18n['layout']['tags']; ?></legend>
+                            <table class="table table-condensed">
+                                <thead>
+                                    <th>#</th>
+                                    <th><?php echo $i18n['layout']['name']; ?></th>
+                                    <th><?php echo $i18n['layout']['manage']; ?></th>
+                                </thead>
+                                <tbody>
+                                    {{#tags}}
+                                        <tr OnClick="tags.selectTag({{id_tag}}, $(this))" class="tag_block" id="tag_block_{{id_tag}}">
+                                            <td>{{id_tag}}</td>
+                                            <td>{{version}}</td>
+                                            <td>
+                                                <button class="btn btn-success btn-xs" OnClick="tags.setTagStatus({{id_tag}},'released')">release</button>
+                                                <button class="btn btn-danger btn-xs" OnClick="tags.deleteTag({{id_tag}})"><?php echo $i18n['layout']['delete']; ?></button>
+                                            </td>
+                                        </tr>
+                                    {{/tags}}
+
+                                    {{^tags}}
+                                        <tr>
+                                            <td colspan="4">{{i18n.no_tags}}</td>
+                                        </tr>
+                                    {{/tags}}
+
+                                </tbody>
+                            </table>
+                        </fieldset>
+                
+                        
+                    </script>
+                    <div id="tagFormBlock"></div>
+
+                    <script id="tagFormTemplate" type="x-tmpl-mustache">
+                                                
+                                                <fieldset class="scheduler-border">
+                            <legend class="scheduler-border"><?php echo $i18n['layout']['tags']; ?></legend>
+                            
+                        <form id="tagForm" class="form-horizontal">
+                            {{#id_tag}}
+                                <input type="hidden" name="id_tag" value="{{id_tag}}">
+                            {{/id_tag}}
+
+                            <div class="form-group">
+                                <label class="col-sm-6 control-label"><?php echo $i18n['layout']['version']; ?></label>
+                                <div class="col-sm-6">
+                                    <input class="form-control input-sm" type="text" name="version" value="{{version}}">
+                                </div>
+                            </div>
+                            <button type="button" onclick="tags.TagForm.save()" class="btn btn-success"><?php echo $i18n['layout']['save']; ?></button>
+                            <button type="reset" onclick="tags.TagForm.render()" class="btn btn-default"><?php echo $i18n['layout']['clear']; ?></button>
+                        </form>
+                </fieldset>
+                    </script>
 
             </div>
             <div class="col-md-1"></div>
             <div class="col-md-5">
-                <input type="text" class="form-control"
-                       id="searchKeyword"
-                       onkeyup="codes.SearchField.find($(this).val())"
-                       placeholder="<?php echo $i18n['layout']['issue_search_placeholder']; ?>">
                 <div id="issuesBlock"></div>
                 <script id="issuesTemplate" type="x-tmpl-mustache">
                     <table class="table table-condensed">
@@ -207,35 +223,24 @@
                             <label class="col-sm-6 control-label"><?php echo $i18n['layout']['type']; ?></label>
                             <div class="col-sm-6">
                                 <select class="form-control input-sm" name="type">
-                                    {{#types}}
-                                        <option {{#selected}}selected{{/selected}} value="{{name}}">{{name}}</option>
-                                    {{/types}}
+                                    {{#issue_types}}
+                                        <option {{#selected}}selected{{/selected}} value="{{type}}">{{type}}</option>
+                                    {{/issue_types}}
                                 </select>
                             </div>
                         </div>
+
                         <div class="form-group">
-                            <label class="col-sm-6 control-label"><?php echo $i18n['layout']['assigned_to_user']; ?></label>
+                            <label class="col-sm-6 control-label"><?php echo $i18n['layout']['tag']; ?></label>
                             <div class="col-sm-6">
-                                <select class="form-control input-sm" name="assigned_to">
-                                    {{#users}}
-                                        <option value="{{id_user}}">{{login}}</option>
-                                    {{/users}}
+                                <select class="form-control input-sm" name="id_tag">
+                                    <option value=""></option>
+                                    {{#tags}}
+                                        <option {{#selected}}selected{{/selected}} value="{{id_tag}}">{{version}}</option>
+                                    {{/tags}}
                                 </select>
                             </div>
                         </div>
-                        {{#tags}}
-                            <div class="form-group">
-                                <label class="col-sm-6 control-label"><?php echo $i18n['layout']['tag']; ?></label>
-                                <div class="col-sm-6">
-                                    <select class="form-control input-sm" name="id_tag">
-                                        <option value=""></option>
-                                        {{#tags}}
-                                            <option {{#selected}}selected{{/selected}} value="{{id_tag}}">{{version}}</option>
-                                        {{/tags}}
-                                    </select>
-                                </div>
-                            </div>
-                        {{/tags}}
                         <button type="button" onclick="issues.IssueForm.save()" class="btn btn-success"><?php echo $i18n['layout']['save']; ?></button>
                         <button type="reset" onclick="issues.IssueForm.render()" class="btn btn-default"><?php echo $i18n['layout']['clear']; ?></button>
                     </form>
