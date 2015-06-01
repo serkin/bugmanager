@@ -71,9 +71,18 @@ class Bugmanager {
      */
     public function getAllProjects(){
 
+        $returnValue = [];
+
         $sth = $this->dbh->prepare("SELECT * FROM `project`");
         $sth->execute();
-        return $sth->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach($sth->fetchAll(PDO::FETCH_ASSOC) as $project):
+            $project['amount_issues'] = $this->countIssuesInProject($project['id_project']);
+            $returnValue[] = $project;
+        endforeach;
+
+        return $returnValue;
+
     }
 
 
@@ -88,6 +97,23 @@ class Bugmanager {
 
         return $sth->fetchAll(PDO::FETCH_ASSOC);
 
+    }
+    
+    /**
+     * Counts open issues in project
+     * 
+     * @param int $idProject
+     * 
+     * @return int
+     */
+    public function countIssuesInProject($idProject, $status = 'open')
+    {
+        $sth = $this->dbh->prepare("SELECT COUNT(*) AS TOTAL FROM `issue` WHERE `id_project` = ? and `status` = ?");
+        $sth->bindParam(1, $idProject,  PDO::PARAM_INT);
+        $sth->bindParam(2, $status,     PDO::PARAM_STR);
+        $sth->execute();
+
+        return $sth->fetch(PDO::FETCH_ASSOC)['TOTAL'];
     }
 
     public function getAllUsers()
