@@ -103,9 +103,18 @@ class Bugmanager {
      */
     public function getAllProjects(){
 
+        $returnValue = [];
+
         $sth = $this->dbh->prepare("SELECT * FROM `project`");
         $sth->execute();
-        return $sth->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach($sth->fetchAll(PDO::FETCH_ASSOC) as $project):
+            $project['amount_issues'] = $this->countIssuesInProject($project['id_project']);
+            $returnValue[] = $project;
+        endforeach;
+
+        return $returnValue;
+
     }
 
 
@@ -120,6 +129,23 @@ class Bugmanager {
 
         return $sth->fetchAll(PDO::FETCH_ASSOC);
 
+    }
+    
+    /**
+     * Counts open issues in project
+     * 
+     * @param int $idProject
+     * 
+     * @return int
+     */
+    public function countIssuesInProject($idProject, $status = 'open')
+    {
+        $sth = $this->dbh->prepare("SELECT COUNT(*) AS TOTAL FROM `issue` WHERE `id_project` = ? and `status` = ?");
+        $sth->bindParam(1, $idProject,  PDO::PARAM_INT);
+        $sth->bindParam(2, $status,     PDO::PARAM_STR);
+        $sth->execute();
+
+        return $sth->fetch(PDO::FETCH_ASSOC)['TOTAL'];
     }
 
     public function getAllUsers()
@@ -423,8 +449,8 @@ class Response {
 $app['i18n']['en'] = array(
     'layout' => array(
         'title'             => 'Bugmanager',
-        'add_tag'       => 'Add/edit release/tag',
-        'tags'          => 'Releases/Tags',
+        'add_tag'           => 'Add/edit release/tag',
+        'tags'              => 'Releases/Tags',
         'name'              => 'Name',
         'version'           => 'Release version',
         'description'       => 'Description',
@@ -432,11 +458,12 @@ $app['i18n']['en'] = array(
         'clear'             => 'Clear',
         'add_project'       => 'Add/edit project',
         'delete'            => 'delete',
-        'tag'           => 'Release/Tag',
+        'tag'               => 'Release/Tag',
         'assigned_to_user'  => 'Assigned to user',
         'type'              => 'Type',
+        'save'              => 'Save',
+        'amount_of_issues'  => 'Issues',
         'issue_search_placeholder'  => 'code',
-        'save'              => 'Save'
         ),
     'bugmanager' => array(
         'project_saved' => 'Project saved!',
@@ -846,18 +873,18 @@ endif;
                 display: none;
             }
             fieldset.scheduler-border {
-    border: 1px groove #ddd !important;
-    padding: 0 1.4em 1.4em 1.4em !important;
-    margin: 10px 0 1.5em 0 !important;
-    -webkit-box-shadow:  0px 0px 0px 0px #000;
-            box-shadow:  0px 0px 0px 0px #000;
-}
+                border: 1px groove #ddd !important;
+                padding: 0 1.4em 1.4em 1.4em !important;
+                margin: 10px 0 1.5em 0 !important;
+                -webkit-box-shadow:  0px 0px 0px 0px #000;
+                        box-shadow:  0px 0px 0px 0px #000;
+            }
             legend.scheduler-border {
                 font-size: 12pt;
-    width:inherit; /* Or auto */
-    padding:0 10px; /* To give a bit of padding on the left and right */
-    border-bottom:none;
-}
+                width:inherit; /* Or auto */
+                padding:0 10px; /* To give a bit of padding on the left and right */
+                border-bottom:none;
+            }
         </style>
         <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/0.8.1/mustache.min.js"></script>
@@ -887,6 +914,7 @@ endif;
                         <thead>
                             <th>#</th>
                             <th><?php echo $i18n['layout']['name']; ?></th>
+                            <th><?php echo $i18n['layout']['amount_of_issues']; ?></th>
                             <th><?php echo $i18n['layout']['manage']; ?></th>
                         </thead>
                         <tbody>
@@ -894,7 +922,10 @@ endif;
                                 <tr OnClick="projects.selectProjectById({{id_project}})" class="project_block" id="project_block_{{id_project}}">
                                     <td>{{id_project}}</td>
                                     <td>{{name}}</td>
-                                    <td><button class="btn btn-danger btn-xs" OnClick="projects.deleteProject({{id_project}})"><?php echo $i18n['layout']['delete']; ?></button></td>
+                                    <td>{{amount_issues}}</td>
+                                    <td>
+                                        <button class="btn btn-danger btn-xs" OnClick="projects.deleteProject({{id_project}})"><?php echo $i18n['layout']['delete']; ?></button>
+                                    </td>
                                 </tr>
                             {{/projects}}
                                     
