@@ -4,8 +4,8 @@
 $app['i18n']['en'] = array(
     'layout' => array(
         'title'             => 'Bugmanager',
-        'add_tag'       => 'Add/edit release/tag',
-        'tags'          => 'Releases/Tags',
+        'add_tag'           => 'Add/edit release/tag',
+        'tags'              => 'Releases/Tags',
         'name'              => 'Name',
         'version'           => 'Release version',
         'description'       => 'Description',
@@ -13,11 +13,12 @@ $app['i18n']['en'] = array(
         'clear'             => 'Clear',
         'add_project'       => 'Add/edit project',
         'delete'            => 'delete',
-        'tag'           => 'Release/Tag',
+        'tag'               => 'Release/Tag',
         'assigned_to_user'  => 'Assigned to user',
         'type'              => 'Type',
+        'save'              => 'Save',
+        'amount_of_issues'  => 'Issues',
         'issue_search_placeholder'  => 'code',
-        'save'              => 'Save'
         ),
     'bugmanager' => array(
         'project_saved' => 'Project saved!',
