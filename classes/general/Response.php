@@ -6,36 +6,35 @@
  */
 class Response {
 
-    public static function responseWithError($message){
-
+    public static function sendResponse($response) {
         header('Content-Type: application/json');
-
-        $response = array(
-            'status' => array(
-                'state'     => 'notOk',
-                'message'   => $message
-                ),
-            'data'  => array()
-                );
-
         echo json_encode($response);
-        die();
-
     }
 
-    public static function responseWithSuccess($arr, $statusMessage = ''){
+    public static function responseWithError($message) {
 
-        header('Content-Type: application/json');
+        $response = [
+            'status' => [
+                'state' => 'notOk',
+                'message' => $message,
+            ],
+            'data' => [],
+        ];
 
-        $response = array(
-            'status' => array(
-                'state'     => 'Ok',
-                'message'   => $statusMessage
-                ),
-            'data'  => $arr
-                );
-
-        echo json_encode($response);
-        die();
+        self::sendResponse($response);
     }
+
+    public static function responseWithSuccess($arr, $statusMessage = '') {
+
+        $response = [
+            'status' => [
+                'state' => 'Ok',
+                'message' => $statusMessage,
+            ],
+            'data' => $arr,
+        ];
+
+        self::sendResponse($response);
+    }
+
 }
