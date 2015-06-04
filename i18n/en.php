@@ -23,13 +23,14 @@ $app['i18n']['en'] = array(
     'bugmanager' => array(
         'project_saved' => 'Project saved!',
         'project_removed' => 'Project removed!',
+        'tag_removed' => 'Tag removed!',
         'issue_status_updated' => 'Issue status updated',
         'issue_removed' => 'Issue removed!',
         'issue_saved' => 'Issue saved!',
         'tag_saved' => 'Tag saved!',
         'tag_status_updated' => 'Tag status updated!',
     ),
-    
+
     'errors' => array(
         'empty_id_project' => 'ID project not specified',
         'empty_project_name' => 'Project name not specified',

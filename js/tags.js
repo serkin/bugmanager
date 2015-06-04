@@ -4,7 +4,8 @@ var tags = {
     deleteTag: function(idTag) {
         sendRequest('tag/delete', {id_tag:idTag, id_project: idSelectedProject}, function(response){
 
-            //statusField.render(response.status);
+            statusField.render(response.status);
+            tags.reload();
 
         });
 
@@ -13,7 +14,7 @@ var tags = {
     selectTag: function(idTag, el) {
         $('.tag_block').removeClass('success');
         el.addClass('success');
-        
+
         tags.TagForm.render(idTag);
 
     },
@@ -25,7 +26,7 @@ var tags = {
             sendRequest('tag/save', {form: data, id_project: idSelectedProject}, function(response) {
                 statusField.render(response.status);
                 tags.reload();
-                
+
             });
         },
         render: function(idTag) {

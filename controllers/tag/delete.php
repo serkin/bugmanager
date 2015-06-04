@@ -1,28 +1,22 @@
 <?php
 
-$app['controllers']['tag/delete'] = function ($app, $request){
+$app['controllers']['tag/delete'] = function($app, $request) {
 
-    $idProject  = !empty($request['id_project'])    ? (int)$request['id_project']   : null;
-    $code       = !empty($request['code'])          ? $request['code']              : null;
+    $idTag = !empty($request['id_tag']) ? $request['id_tag'] : null;
 
-
-    if(empty($idProject)):
-        $result     = false;
-        $errorMsg   = $app['i18n']['errors']['empty_id_project'];
-    elseif(empty($code)):
-        $result     = false;
-        $errorMsg   = $app['i18n']['errors']['empty_code'];
+    if (empty($idTag)):
+        $result = false;
+        $errorMsg = $app['i18n']['errors']['empty_id_tag'];
     else:
-        $result     = $app['bugmanager']->deleteCode($idProject, $code);
-        $error      = $app['bugmanager']->getError();
-        $errorMsg   = $error[2];
+        $result = $app['bugmanager']->deleteTag($idTag);
+        $error = $app['bugmanager']->getError();
+        $errorMsg = $error[2];
     endif;
 
-
-    if($result):
-        Response::responseWithSuccess(array(), $app['i18n']['bugmanager']['code_removed']);
+    if ($result):
+        Response::responseWithSuccess([], $app['i18n']['bugmanager']['tag_removed']);
     else:
         Response::responseWithError($errorMsg);
     endif;
-    
+
 };

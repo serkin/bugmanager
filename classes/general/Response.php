@@ -1,18 +1,21 @@
 <?php
 
 /**
- * Class creates two types of response according having error
+ * Class creates two types of response according having error.
+ *
  * @author Serkin Alexander <serkin.alexander@gmail.com>
  */
-class Response {
-
-    public static function sendResponse($response) {
+class Response
+{
+    public static function sendResponse($response)
+    {
         header('Content-Type: application/json');
         echo json_encode($response);
+        die();
     }
 
-    public static function responseWithError($message) {
-
+    public static function responseWithError($message)
+    {
         $response = [
             'status' => [
                 'state' => 'notOk',
@@ -24,8 +27,8 @@ class Response {
         self::sendResponse($response);
     }
 
-    public static function responseWithSuccess($arr, $statusMessage = '') {
-
+    public static function responseWithSuccess($arr, $statusMessage = '')
+    {
         $response = [
             'status' => [
                 'state' => 'Ok',
@@ -36,5 +39,4 @@ class Response {
 
         self::sendResponse($response);
     }
-
 }
