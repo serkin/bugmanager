@@ -248,9 +248,10 @@ class Bugmanager
         return $returnValue;
     }
     /**
-     * @param int    $idProject
-     * @param string $code
+     * Saves issue
+     *
      * @param array  $arr
+     * @param int    $idIssue If is not null edit record else insert new
      *
      * @return bool
      */
@@ -261,10 +262,7 @@ class Bugmanager
         $arr['description'] = !empty($arr['description']) ? $arr['description']   : null;
         $arr['type'] = !empty($arr['type'])        ? $arr['type']          : null;
 
-        if (is_null($idIssue)):
-            return $this->insertIssue($arr); else:
-            return $this->updateIssue($arr, $idIssue);
-        endif;
+        return is_null($idIssue) ? $this->insertIssue($arr) : $this->updateIssue($arr, $idIssue);
     }
 
     private function insertIssue($arr)
