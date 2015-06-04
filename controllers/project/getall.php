@@ -1,8 +1,8 @@
 <?php
 
-$app['controllers']['project/getall'] = function ($app, $request){
-    
+$app['controllers']['project/getall'] = function($app, $request) {
+
     $projects = $app['bugmanager']->getAllProjects();
-    Response::responseWithSuccess(array('projects' => $projects));
-    
+    Response::responseWithSuccess(['projects' => $projects]);
+
 };
