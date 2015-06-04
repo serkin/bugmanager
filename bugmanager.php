@@ -2,29 +2,25 @@
 // Source: config/header.php
 
 
-$app = array();
+$app = [];
 
-$app['config'] = array(
-    'db' => array(
-        'dsn'       => 'mysql:dbname=bugmanager;host=localhost',
-        'user'      => 'bugmanager',
-        'password'  => ''
-    ),
-    'url'           => $_SERVER['PHP_SELF'],
-    'debug'         => false,
-    'issue_types'   => array(
-        array('type' => 'bug'),
-        array('type' => 'feature')
-    )
-);
+$app['config'] = [
+    'db' => [
+        'dsn' => 'mysql:dbname=bugmanager;host=localhost',
+        'user' => 'bugmanager',
+        'password' => '',
+    ],
+    'url' => $_SERVER['PHP_SELF'],
+    'debug' => false,
+    'issue_types' => [
+        ['type' => 'bug'],
+        ['type' => 'feature']
+    ]
+];
 
-
-
-if($app['config']['debug']):
+if ($app['config']['debug']):
     error_reporting(E_ALL);
-    ini_set('display_errors', 1);
 endif;
-
 
 $app['locale'] = 'en';
 
@@ -35,61 +31,51 @@ $app['locale'] = 'en';
 /**
  * @author Serkin Alexander <serkin.alexander@gmail.com>
  */
-class Bugmanager {
-
-    
+class Bugmanager
+{
     /**
-     *
-     * @var PDO 
+     * @var PDO
      */
-    protected $dbh  = null;
+    protected $dbh = null;
 
     /**
-     *
      * @var string
      */
     protected $dbDSN;
-    
+
     /**
-     *
      * @var string
      */
     protected $dbUser;
-    
+
     /**
-     *
      * @var string
      */
     protected $dbPassword;
 
-
     /**
-     * 
      * @param string $dbDSN
      * @param string $dbUser
      * @param string $dbPassword
      */
-    public function __construct($dbDSN, $dbUser, $dbPassword = '') {
-
-
-        $this->dbDSN        = $dbDSN;
-        $this->dbUser       = $dbUser;
-        $this->dbPassword   = $dbPassword;
-
+    public function __construct($dbDSN, $dbUser, $dbPassword = '')
+    {
+        $this->dbDSN = $dbDSN;
+        $this->dbUser = $dbUser;
+        $this->dbPassword = $dbPassword;
     }
 
     /**
-     * Connects to database
-     * 
+     * Connects to database.
+     *
      * @throws PDOException
-     * @return void
      */
-    public function connect(){
+    public function connect()
+    {
         $dbh = new PDO($this->dbDSN, $this->dbUser, $this->dbPassword);
         $this->dbh = $dbh;
         $this->dbh->exec('SET NAMES utf8');
     }
-    
 
     public function getError()
     {
@@ -97,50 +83,45 @@ class Bugmanager {
     }
 
     /**
-     * Gets all projects
-     * 
+     * Gets all projects.
+     *
      * @return array
      */
-    public function getAllProjects(){
-
+    public function getAllProjects()
+    {
         $returnValue = [];
 
-        $sth = $this->dbh->prepare("SELECT * FROM `project`");
+        $sth = $this->dbh->prepare('SELECT * FROM `project`');
         $sth->execute();
 
-        foreach($sth->fetchAll(PDO::FETCH_ASSOC) as $project):
+        foreach ($sth->fetchAll(PDO::FETCH_ASSOC) as $project) {
             $project['amount_issues'] = $this->countIssuesInProject($project['id_project']);
             $returnValue[] = $project;
-        endforeach;
+        }
 
         return $returnValue;
-
     }
 
-
-    
-    public function getAllIssuesFromProject($idProject)
+    public function getAllIssuesFromProject($idProject, $status = 'open')
     {
-
-        $sth = $this->dbh->prepare("SELECT * FROM `issue` WHERE `id_project` = ? and `status` = 'open'");
+        $sth = $this->dbh->prepare("SELECT * FROM `issue` WHERE `id_project` = ? and `status` = ?");
         $sth->bindParam(1, $idProject,  PDO::PARAM_INT);
-        //$sth->bindParam(2, 'open',      PDO::PARAM_STR);
+        $sth->bindParam(2, $status,     PDO::PARAM_STR);
         $sth->execute();
 
         return $sth->fetchAll(PDO::FETCH_ASSOC);
-
     }
-    
+
     /**
-     * Counts open issues in project
-     * 
+     * Counts open issues in project.
+     *
      * @param int $idProject
-     * 
+     *
      * @return int
      */
     public function countIssuesInProject($idProject, $status = 'open')
     {
-        $sth = $this->dbh->prepare("SELECT COUNT(*) AS TOTAL FROM `issue` WHERE `id_project` = ? and `status` = ?");
+        $sth = $this->dbh->prepare('SELECT COUNT(*) AS TOTAL FROM `issue` WHERE `id_project` = ? and `status` = ?');
         $sth->bindParam(1, $idProject,  PDO::PARAM_INT);
         $sth->bindParam(2, $status,     PDO::PARAM_STR);
         $sth->execute();
@@ -150,19 +131,16 @@ class Bugmanager {
 
     public function getAllUsers()
     {
-
-        $sth = $this->dbh->prepare("SELECT * FROM `user`");
+        $sth = $this->dbh->prepare('SELECT * FROM `user`');
 
         $sth->execute();
 
         return $sth->fetchAll(PDO::FETCH_ASSOC);
-
     }
-
 
     public function getAllTagsFromProject($idProject, $status = 'open')
     {
-        $sth = $this->dbh->prepare("SELECT * FROM `tag` WHERE `id_project` = ? and `status` = ?");
+        $sth = $this->dbh->prepare('SELECT * FROM `tag` WHERE `id_project` = ? and `status` = ?');
         $sth->bindParam(1, $idProject,  PDO::PARAM_INT);
         $sth->bindParam(2, $status,     PDO::PARAM_STR);
 
@@ -170,166 +148,153 @@ class Bugmanager {
 
         return $sth->fetchAll(PDO::FETCH_ASSOC);
     }
-    
+
     public function getIssue($idIssue)
     {
-
-        $sth = $this->dbh->prepare("SELECT * FROM `issue` WHERE `id_issue` = ?");
+        $sth = $this->dbh->prepare('SELECT * FROM `issue` WHERE `id_issue` = ?');
         $sth->bindParam(1, $idIssue, PDO::PARAM_INT);
 
         $sth->execute();
 
         return $sth->fetch(PDO::FETCH_ASSOC);
-
     }
-    
+
     public function getTag($idTag)
     {
-
-        $sth = $this->dbh->prepare("SELECT * FROM `tag` WHERE `id_tag` = ?");
+        $sth = $this->dbh->prepare('SELECT * FROM `tag` WHERE `id_tag` = ?');
         $sth->bindParam(1, $idTag, PDO::PARAM_INT);
 
         $sth->execute();
 
         return $sth->fetch(PDO::FETCH_ASSOC);
-
     }
 
     /**
-     * Get all information about project
-     * 
-     * @param integer $idProject
+     * Get all information about project.
+     *
+     * @param int $idProject
+     *
      * @return array
      */
     public function getProjectById($idProject)
     {
-        $sth = $this->dbh->prepare("SELECT * FROM `project` WHERE `id_project` = ?");
+        $sth = $this->dbh->prepare('SELECT * FROM `project` WHERE `id_project` = ?');
         $sth->bindParam(1, $idProject, PDO::PARAM_INT);
         $sth->execute();
+
         return $sth->fetch(PDO::FETCH_ASSOC);
     }
 
-
     /**
-     * Saves project
-     * 
+     * Saves project.
+     *
      * Edits project if $idProject was specified
-     * 
+     *
      * @param array $arr
-     * @param integer $idProject
-     * @return int|boolean False on error
+     * @param int   $idProject
+     *
+     * @return int|bool False on error
      */
     public function saveProject($arr, $idProject = null)
     {
-
-        if(is_null($idProject)):
+        if (is_null($idProject)) {
             $sth = $this->dbh->prepare('INSERT INTO `project` (`name`) VALUES(?)');
-        else:
+        } else {
             $sth = $this->dbh->prepare('UPDATE `project` SET `name` = ? WHERE `id_project` = ?');
-        endif;
+        }
 
         $sth->bindParam(1, $arr['name'], PDO::PARAM_STR);
 
-        if(is_null($idProject)):
+        if (is_null($idProject)) {
             $sth->execute();
             $returnValue = $this->dbh->lastInsertId() ? $this->dbh->lastInsertId() : 0;
-        else:
+        } else {
             $sth->bindParam(2, $idProject, PDO::PARAM_INT);
             $sth->execute();
             $returnValue = $idProject;
-        endif;
+        }
 
         return $returnValue;
-
     }
 
     public function setTagStatus($idTag, $status)
     {
-
         $sth = $this->dbh->prepare('UPDATE `tag` SET `status` = ? WHERE `id_tag` = ?');
 
         $sth->bindParam(1, $status, PDO::PARAM_STR);
         $sth->bindParam(2, $idTag,  PDO::PARAM_INT);
 
         return $sth->execute();
-
     }
 
     public function setIssuesStatus($idIssue, $status)
     {
-
         $sth = $this->dbh->prepare('UPDATE `issue` SET `status` = ? WHERE `id_issue` = ?');
 
         $sth->bindParam(1, $status,     PDO::PARAM_STR);
-        $sth->bindParam(2, $idIssue,    PDO::PARAM_INT);        
+        $sth->bindParam(2, $idIssue,    PDO::PARAM_INT);
 
         return $sth->execute();
-
     }
 
     /**
-     * Removes project
-     * 
+     * Removes project.
+     *
      * @param int $idProject
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    public function deleteProject($idProject){
-        
-        $sql = "DELETE FROM `project` WHERE `id_project` = " . $idProject;
-        return $this->dbh->exec($sql) ? true : false;
+    public function deleteProject($idProject)
+    {
+        $sth = $this->dbh->prepare('DELETE FROM `project` WHERE `id_project` = ?');
+
+        $sth->bindParam(1, $idProject, PDO::PARAM_INT);
+
+        return $sth->execute();
     }
-
-
 
     public function saveTag($version, $idProject, $idTag = null)
     {
-
-        if(is_null($idTag)):
+        if (is_null($idTag)) {
             $sth = $this->dbh->prepare('INSERT INTO `tag` (`version`, `id_project`) VALUES(?, ?)');
-        else:
+        } else {
             $sth = $this->dbh->prepare('UPDATE `tag` SET `version` = ? WHERE `id_tag` = ?');
-        endif;
+        }
 
         $sth->bindParam(1, $version, PDO::PARAM_STR);
 
-
-        if(is_null($idTag)):
+        if (is_null($idTag)) {
             $sth->bindParam(2, $idProject, PDO::PARAM_INT);
             $sth->execute();
             $returnValue = $this->dbh->lastInsertId() ? $this->dbh->lastInsertId() : 0;
-        else:
+        } else {
             $sth->bindParam(2, $idTag, PDO::PARAM_INT);
             $sth->execute();
             $returnValue = $idTag;
-        endif;
+        }
 
         return $returnValue;
     }
     /**
-     * 
-     * @param integer $idProject
+     * @param int    $idProject
      * @param string $code
-     * @param array $arr
-     * 
-     * @return boolean
+     * @param array  $arr
+     *
+     * @return bool
      */
     public function saveIssue($arr, $idIssue = null)
     {
-        
-        $arr['id_project']  = !empty($arr['id_project'])  ? $arr['id_project']    : null;
-        $arr['id_tag']      = !empty($arr['id_tag'])      ? $arr['id_tag']        : null;
+        $arr['id_project'] = !empty($arr['id_project'])  ? $arr['id_project']    : null;
+        $arr['id_tag'] = !empty($arr['id_tag'])      ? $arr['id_tag']        : null;
         $arr['description'] = !empty($arr['description']) ? $arr['description']   : null;
-        $arr['type']        = !empty($arr['type'])        ? $arr['type']          : null;
-        
-        
-        if(is_null($idIssue)):
-            return $this->insertIssue($arr);
-        else:
+        $arr['type'] = !empty($arr['type'])        ? $arr['type']          : null;
+
+        if (is_null($idIssue)):
+            return $this->insertIssue($arr); else:
             return $this->updateIssue($arr, $idIssue);
         endif;
     }
-    
+
     private function insertIssue($arr)
     {
         $sql = '
@@ -342,7 +307,7 @@ class Bugmanager {
                 )
             VALUES(?, ?, ?, ?)';
         $sth = $this->dbh->prepare($sql);
-        
+
         $sth->bindParam(1, $arr['id_project'],  PDO::PARAM_INT);
         $sth->bindParam(2, $arr['id_tag'],      PDO::PARAM_INT);
         $sth->bindParam(3, $arr['description'], PDO::PARAM_STR);
@@ -352,10 +317,9 @@ class Bugmanager {
 
         return $this->dbh->lastInsertId() ? $this->dbh->lastInsertId() : false;
     }
-    
+
     private function updateIssue($arr, $idIssue)
     {
-
         $sql = '
             UPDATE
                 `issue`
@@ -372,75 +336,78 @@ class Bugmanager {
         $sth->bindParam(2, $arr['description'], PDO::PARAM_STR);
         $sth->bindParam(3, $arr['type'],        PDO::PARAM_STR);
         $sth->bindParam(4, $idIssue,            PDO::PARAM_INT);
-        
-        return $sth->execute();
 
+        return $sth->execute();
     }
 
-/**
-     * @param integer $idIssue
-     * 
-     * @return boolean
+    /**
+     * @param int $idIssue
+     *
+     * @return bool
      */
     public function deleteIssue($idIssue)
     {
         $sth = $this->dbh->prepare('DELETE FROM `issue` WHERE `id_issue` = ?');
 
         $sth->bindParam(1, $idIssue, PDO::PARAM_INT);
- 
+
         return $sth->execute();
-     
     }
-    
+
     public function deleteTag($idTag)
     {
-        
+        $sth = $this->dbh->prepare('DELETE FROM `tag` WHERE `id_tag` = ?');
+        $sth->bindParam(1, $idTag, PDO::PARAM_INT);
+
+        return $sth->execute();
     }
-    
 }
+
 
 // Source: classes/general/Response.php
 
 
 /**
- * Class creates two types of response according having error
+ * Class creates two types of response according having error.
+ *
  * @author Serkin Alexander <serkin.alexander@gmail.com>
  */
-class Response {
-
-    public static function responseWithError($message){
-
+class Response
+{
+    public static function sendResponse($response)
+    {
         header('Content-Type: application/json');
-
-        $response = array(
-            'status' => array(
-                'state'     => 'notOk',
-                'message'   => $message
-                ),
-            'data'  => array()
-                );
-
         echo json_encode($response);
         die();
-
     }
 
-    public static function responseWithSuccess($arr, $statusMessage = ''){
+    public static function responseWithError($message)
+    {
+        $response = [
+            'status' => [
+                'state' => 'notOk',
+                'message' => $message,
+            ],
+            'data' => [],
+        ];
 
-        header('Content-Type: application/json');
+        self::sendResponse($response);
+    }
 
-        $response = array(
-            'status' => array(
-                'state'     => 'Ok',
-                'message'   => $statusMessage
-                ),
-            'data'  => $arr
-                );
+    public static function responseWithSuccess($arr, $statusMessage = '')
+    {
+        $response = [
+            'status' => [
+                'state' => 'Ok',
+                'message' => $statusMessage,
+            ],
+            'data' => $arr,
+        ];
 
-        echo json_encode($response);
-        die();
+        self::sendResponse($response);
     }
 }
+
 
 // Source: i18n/en.php
 
@@ -468,13 +435,14 @@ $app['i18n']['en'] = array(
     'bugmanager' => array(
         'project_saved' => 'Project saved!',
         'project_removed' => 'Project removed!',
+        'tag_removed' => 'Tag removed!',
         'issue_status_updated' => 'Issue status updated',
         'issue_removed' => 'Issue removed!',
         'issue_saved' => 'Issue saved!',
         'tag_saved' => 'Tag saved!',
         'tag_status_updated' => 'Tag status updated!',
     ),
-    
+
     'errors' => array(
         'empty_id_project' => 'ID project not specified',
         'empty_project_name' => 'Project name not specified',
@@ -488,67 +456,69 @@ $app['i18n']['en'] = array(
     )
 );
 
+
 // Source: controllers/issue/delete.php
 
 
-$app['controllers']['issue/delete'] = function ($app, $request){
+$app['controllers']['issue/delete'] = function($app, $request) {
 
     $idIssue = !empty($request['id_issue']) ? (int)$request['id_issue'] : null;
 
-    if(empty($idIssue)):
-        $result     = false;
-        $errorMsg   = $app['i18n']['errors']['empty_issue_id'];
+    if (empty($idIssue)):
+        $result = false;
+        $errorMsg = $app['i18n']['errors']['empty_issue_id'];
     else:
-        $result     = $app['bugmanager']->deleteIssue($idIssue);
-        $errorMsg   = $app['i18n']['errors']['cannot_update_issue_status'];
+        $result = $app['bugmanager']->deleteIssue($idIssue);
+        $errorMsg = $app['i18n']['errors']['cannot_update_issue_status'];
     endif;
-    
-    if($result):
-        Response::responseWithSuccess(array(), $app['i18n']['bugmanager']['issue_removed']);
+
+    if ($result):
+        Response::responseWithSuccess([], $app['i18n']['bugmanager']['issue_removed']);
     else:
         Response::responseWithError($errorMsg);
     endif;
 
 };
 
+
 // Source: controllers/issue/getall.php
 
 
-$app['controllers']['issue/getall'] = function ($app, $request){
+$app['controllers']['issue/getall'] = function($app, $request) {
 
     $idProject = !empty($request['id_project']) ? (int)$request['id_project'] : null;
 
-    if(!is_null($idProject)):
+    if (!is_null($idProject)):
         $issues = $app['bugmanager']->getAllIssuesFromProject($idProject);
-        Response::responseWithSuccess(array('issues' => $issues));
+        Response::responseWithSuccess(['issues' => $issues]);
     else:
         Response::responseWithError($app['i18n']['errors']['empty_id_project']);
     endif;
 
 };
 
+
 // Source: controllers/issue/getone.php
 
 
-$app['controllers']['issue/getone'] = function ($app, $request){
+$app['controllers']['issue/getone'] = function($app, $request) {
 
-    $idProject  = !empty($request['id_project'])   ? $request['id_project']   : null;
-    $idIssue    = !empty($request['id_issue'])     ? $request['id_issue']     : null;
-    
+    $idProject = !empty($request['id_project']) ? $request['id_project'] : null;
+    $idIssue = !empty($request['id_issue']) ? $request['id_issue'] : null;
+
     $result = true;
-    $response = array();
+    $response = [];
     $response['issue_types'] = $app['config']['issue_types'];
 
-    if(empty($idProject)):
-        $result     = false;
-        $errorMsg   = $app['i18n']['errors']['empty_id_project'];
+    if (empty($idProject)):
+        $result = false;
+        $errorMsg = $app['i18n']['errors']['empty_id_project'];
     endif;
 
-    $response['tags']   = !empty($idProject)    ? $app['bugmanager']->getAllTagsFromProject($idProject) : array();
-    $response['issue']  = !empty($idIssue)      ? $app['bugmanager']->getIssue($idIssue)                : array();
+    $response['tags'] = !empty($idProject) ? $app['bugmanager']->getAllTagsFromProject($idProject) : [];
+    $response['issue'] = !empty($idIssue) ? $app['bugmanager']->getIssue($idIssue) : [];
 
-
-    if($result):
+    if ($result):
         Response::responseWithSuccess($response);
     else:
         Response::responseWithError($errorMsg);
@@ -561,260 +531,261 @@ $app['controllers']['issue/getone'] = function ($app, $request){
 
 
 
-$app['controllers']['issue/save'] = function ($app, $request) {
+$app['controllers']['issue/save'] = function($app, $request) {
 
     parse_str(urldecode($request['form']), $arr);
 
+    $idIssue = !empty($arr['id_issue']) ? $arr['id_issue'] : null;
+    $arr['id_project'] = !empty($request['id_project']) ? (int)$request['id_project'] : null;
 
-    $idIssue            = !empty($arr['id_issue'])          ? $arr['id_issue']              : null;
-    $arr['id_project']  = !empty($request['id_project'])    ? (int)$request['id_project']   : null;
-
-    if(empty($arr['id_project'])):
-        $result     = false;
-        $errorMsg   = $app['i18n']['errors']['empty_id_project'];
+    if (empty($arr['id_project'])):
+        $result = false;
+        $errorMsg = $app['i18n']['errors']['empty_id_project'];
     else:
-        $result     = $app['bugmanager']->saveIssue($arr, $idIssue);
-        $error      = $app['bugmanager']->getError();
-        $errorMsg   = $error[2];
+        $result = $app['bugmanager']->saveIssue($arr, $idIssue);
+        $error = $app['bugmanager']->getError();
+        $errorMsg = $error[2];
     endif;
 
-    if($result):
-        Response::responseWithSuccess(array(), $app['i18n']['bugmanager']['issue_saved']);
+    if ($result):
+        Response::responseWithSuccess([], $app['i18n']['bugmanager']['issue_saved']);
     else:
         Response::responseWithError($errorMsg);
     endif;
 
 };
+
 
 // Source: controllers/issue/setstatus.php
 
 
-$app['controllers']['issue/setstatus'] = function ($app, $request){
+$app['controllers']['issue/setstatus'] = function($app, $request) {
 
-    $idIssue    = !empty($request['id_issue'])  ? (int)$request['id_issue']   : null;
-    $status     = !empty($request['status'])    ? $request['status']          : null;
+    $idIssue = !empty($request['id_issue']) ? (int)$request['id_issue'] : null;
+    $status = !empty($request['status']) ? $request['status'] : null;
 
-    if(empty($status)):
-        $result     = false;
-        $errorMsg   = $app['i18n']['errors']['empty_issue_status'];
-    elseif(empty($idIssue)):
-        $result     = false;
-        $errorMsg   = $app['i18n']['errors']['empty_issue_id'];
+    if (empty($status)):
+        $result = false;
+        $errorMsg = $app['i18n']['errors']['empty_issue_status'];
+    elseif (empty($idIssue)):
+        $result = false;
+        $errorMsg = $app['i18n']['errors']['empty_issue_id'];
     else:
-        $result     = $app['bugmanager']->setIssuesStatus($idIssue, $status);
-        $errorMsg   = $app['i18n']['errors']['cannot_update_issue_status'];
+        $result = $app['bugmanager']->setIssuesStatus($idIssue, $status);
+        $errorMsg = $app['i18n']['errors']['cannot_update_issue_status'];
     endif;
-    
-    if($result):
-        Response::responseWithSuccess(array(), $app['i18n']['bugmanager']['issue_status_updated']);
+
+    if ($result):
+        Response::responseWithSuccess([], $app['i18n']['bugmanager']['issue_status_updated']);
     else:
         Response::responseWithError($errorMsg);
     endif;
 
 };
+
 
 // Source: controllers/project/delete.php
 
 
 
+$app['controllers']['project/delete'] = function($app, $request) {
 
-$app['controllers']['project/delete'] = function ($app, $request){
+    $idProject = !empty($request['id_project']) ? (int) $request['id_project'] : null;
 
-    $idProject = !empty($request['id_project']) ? (int)$request['id_project'] : null;    
-
-    if(empty($idProject)):
-        $result     = false;
-        $errorMsg   = $app['i18n']['errors']['empty_id_project'];
+    if (empty($idProject)):
+        $result = false;
+        $errorMsg = $app['i18n']['errors']['empty_id_project'];
     else:
-        $result     = $app['bugmanager']->deleteProject($idProject);
-        $error      = $app['bugmanager']->getError();
-        $errorMsg   = $error[2];
+        $result = $app['bugmanager']->deleteProject($idProject);
+        $error = $app['bugmanager']->getError();
+        $errorMsg = $error[2];
     endif;
 
-
-    if($result):
-        Response::responseWithSuccess(array(), $app['i18n']['bugmanager']['project_removed']);
+    if ($result):
+        Response::responseWithSuccess([], $app['i18n']['bugmanager']['project_removed']);
     else:
         Response::responseWithError($errorMsg);
     endif;
 
 };
 
+
 // Source: controllers/project/getall.php
 
 
-$app['controllers']['project/getall'] = function ($app, $request){
-    
+$app['controllers']['project/getall'] = function($app, $request) {
+
     $projects = $app['bugmanager']->getAllProjects();
-    Response::responseWithSuccess(array('projects' => $projects));
-    
+    Response::responseWithSuccess(['projects' => $projects]);
+
 };
+
 
 // Source: controllers/project/getone.php
 
 
 
+$app['controllers']['project/getone'] = function($app, $request) {
 
-$app['controllers']['project/getone'] = function ($app, $request){
-    
     $idProject = !empty($request['id_project']) ? (int)$request['id_project'] : null;
 
-    if(!is_null($idProject)):
+    if (!is_null($idProject)):
         $project = $app['bugmanager']->getProjectByID($idProject);
-        Response::responseWithSuccess(array('project' => $project));
+        Response::responseWithSuccess(['project' => $project]);
     else:
         Response::responseWithError($app['i18n']['errors']['empty_id_project']);
     endif;
 
 };
+
 
 // Source: controllers/project/save.php
 
 
 
-$app['controllers']['project/save'] = function ($app, $request) {
+$app['controllers']['project/save'] = function($app, $request) {
 
     parse_str($request['form'], $form);
 
     $idProject = !empty($form['id_project']) ? $form['id_project'] : null;
 
-    if(empty($form['name'])):
-        $result     = false;
-        $errorMsg   = $app['i18n']['errors']['empty_project_name'];
+    if (empty($form['name'])):
+        $result = false;
+        $errorMsg = $app['i18n']['errors']['empty_project_name'];
     else:
-        $result     = $app['bugmanager']->saveProject($form, $idProject);
-        $error      = $app['bugmanager']->getError();
-        $errorMsg   = $error[2];
+        $result = $app['bugmanager']->saveProject($form, $idProject);
+        $error = $app['bugmanager']->getError();
+        $errorMsg = $error[2];
     endif;
 
-    if($result):
-        Response::responseWithSuccess(array('id_project' => $result), $app['i18n']['bugmanager']['project_saved']);
+    if ($result):
+        Response::responseWithSuccess(['id_project' => $result], $app['i18n']['bugmanager']['project_saved']);
     else:
         Response::responseWithError($errorMsg);
     endif;
-    
+
 };
+
 
 // Source: controllers/tag/delete.php
 
 
-$app['controllers']['tag/delete'] = function ($app, $request){
+$app['controllers']['tag/delete'] = function($app, $request) {
 
-    $idProject  = !empty($request['id_project'])    ? (int)$request['id_project']   : null;
-    $code       = !empty($request['code'])          ? $request['code']              : null;
+    $idTag = !empty($request['id_tag']) ? $request['id_tag'] : null;
 
-
-    if(empty($idProject)):
-        $result     = false;
-        $errorMsg   = $app['i18n']['errors']['empty_id_project'];
-    elseif(empty($code)):
-        $result     = false;
-        $errorMsg   = $app['i18n']['errors']['empty_code'];
+    if (empty($idTag)):
+        $result = false;
+        $errorMsg = $app['i18n']['errors']['empty_id_tag'];
     else:
-        $result     = $app['bugmanager']->deleteCode($idProject, $code);
-        $error      = $app['bugmanager']->getError();
-        $errorMsg   = $error[2];
+        $result = $app['bugmanager']->deleteTag($idTag);
+        $error = $app['bugmanager']->getError();
+        $errorMsg = $error[2];
     endif;
 
-
-    if($result):
-        Response::responseWithSuccess(array(), $app['i18n']['bugmanager']['code_removed']);
+    if ($result):
+        Response::responseWithSuccess([], $app['i18n']['bugmanager']['tag_removed']);
     else:
         Response::responseWithError($errorMsg);
     endif;
-    
+
 };
+
 
 // Source: controllers/tag/getall.php
 
 
-$app['controllers']['tag/getall'] = function ($app, $request){
-    
+$app['controllers']['tag/getall'] = function($app, $request) {
+
     $idProject = !empty($request['id_project']) ? (int)$request['id_project'] : null;
 
-    if(!is_null($idProject)):
+    if (!is_null($idProject)):
         $tags = $app['bugmanager']->getAllTagsFromProject($idProject);
-        Response::responseWithSuccess(array('tags' => $tags));
+        Response::responseWithSuccess(['tags' => $tags]);
     else:
         Response::responseWithError($app['i18n']['errors']['empty_id_project']);
     endif;
-    
+
 };
+
 
 // Source: controllers/tag/getone.php
 
 
-$app['controllers']['tag/getone'] = function ($app, $request){
-    
+$app['controllers']['tag/getone'] = function($app, $request) {
+
     $idTag = !empty($request['id_tag']) ? (int)$request['id_tag'] : null;
 
-    if(!is_null($idTag)):
+    if (!is_null($idTag)):
         $tag = $app['bugmanager']->getTag($idTag);
-        Response::responseWithSuccess(array('tag' => $tag));
+        Response::responseWithSuccess(['tag' => $tag]);
     else:
         Response::responseWithError($app['i18n']['errors']['empty_id_tag']);
     endif;
 
 };
 
+
 // Source: controllers/tag/save.php
 
 
 
-$app['controllers']['tag/save'] = function ($app, $request) {
+$app['controllers']['tag/save'] = function($app, $request) {
 
     parse_str($request['form'], $form);
 
-    $idTag      = !empty($form['id_tag'])           ? $form['id_tag']               : null;
-    $version    = !empty($form['version'])          ? $form['version']              : null;
-    $idProject  = !empty($request['id_project'])    ? (int)$request['id_project']   : null;
+    $idTag = !empty($form['id_tag']) ? $form['id_tag'] : null;
+    $version = !empty($form['version']) ? $form['version'] : null;
+    $idProject = !empty($request['id_project']) ? (int)$request['id_project'] : null;
 
-    if(empty($version)):
-        $result     = false;
-        $errorMsg   = $app['i18n']['errors']['empty_tag_version'];
-    elseif(empty($idProject)):
-        $result     = false;
-        $errorMsg   = $app['i18n']['errors']['empty_id_project'];
+    if (empty($version)):
+        $result = false;
+        $errorMsg = $app['i18n']['errors']['empty_tag_version'];
+    elseif (empty($idProject)):
+        $result = false;
+        $errorMsg = $app['i18n']['errors']['empty_id_project'];
     else:
-        $result     = $app['bugmanager']->saveTag($version, $idProject, $idTag);
-        $error      = $app['bugmanager']->getError();
-        $errorMsg   = $error[2];
+        $result = $app['bugmanager']->saveTag($version, $idProject, $idTag);
+        $error = $app['bugmanager']->getError();
+        $errorMsg = $error[2];
     endif;
 
-    if($result):
-        Response::responseWithSuccess(array('id_tag' => $result), $app['i18n']['bugmanager']['tag_saved']);
+    if ($result):
+        Response::responseWithSuccess(['id_tag' => $result], $app['i18n']['bugmanager']['tag_saved']);
     else:
         Response::responseWithError($errorMsg);
     endif;
-    
+
 };
+
 
 // Source: controllers/tag/setstatus.php
 
 
-$app['controllers']['tag/setstatus'] = function ($app, $request){
+$app['controllers']['tag/setstatus'] = function($app, $request) {
 
-    $idTag      = !empty($request['id_tag'])    ? $request['id_tag'] : null;
-    $status     = !empty($request['status'])    ? $request['status'] : null;
+    $idTag = !empty($request['id_tag']) ? $request['id_tag'] : null;
+    $status = !empty($request['status']) ? $request['status'] : null;
 
-    if(empty($status)):
-        $result     = false;
-        $errorMsg   = $app['i18n']['errors']['empty_tag_status'];
-    elseif(empty($idTag)):
-        $result     = false;
-        $errorMsg   = $app['i18n']['errors']['empty_id_tag'];
+    if (empty($status)):
+        $result = false;
+        $errorMsg = $app['i18n']['errors']['empty_tag_status'];
+    elseif (empty($idTag)):
+        $result = false;
+        $errorMsg = $app['i18n']['errors']['empty_id_tag'];
     else:
-        $result     = $app['bugmanager']->setTagStatus($idTag, $status);
-        $errorMsg   = $app['i18n']['errors']['cannot_update_tag_status'];
+        $result = $app['bugmanager']->setTagStatus($idTag, $status);
+        $errorMsg = $app['i18n']['errors']['cannot_update_tag_status'];
     endif;
-    
-    if($result):
-        Response::responseWithSuccess(array(), $app['i18n']['bugmanager']['tag_status_updated']);
+
+    if ($result):
+        Response::responseWithSuccess([], $app['i18n']['bugmanager']['tag_status_updated']);
     else:
         Response::responseWithError($errorMsg);
     endif;
 
 };
+
 
 // Source: config/footer.php
 
@@ -824,15 +795,15 @@ $app['bugmanager'] = new Bugmanager($app['config']['db']['dsn'], $app['config'][
 
 try {
     $app['bugmanager']->connect();
-} catch (Exception $exc){
+} catch (Exception $exc) {
     Response::responseWithError($exc->getMessage());
 }
 
 $i18n = $app['i18n'] = $app['i18n'][$app['locale']];
 
-
-if(!empty($_REQUEST['action']) && isset($app['controllers'][$_REQUEST['action']])):
+if (!empty($_REQUEST['action']) && isset($app['controllers'][$_REQUEST['action']])):
     $app['controllers'][$_REQUEST['action']]($app, $_REQUEST);
+    die();
 endif;
 
 ?>
@@ -1379,7 +1350,8 @@ var tags = {
     deleteTag: function(idTag) {
         sendRequest('tag/delete', {id_tag:idTag, id_project: idSelectedProject}, function(response){
 
-            //statusField.render(response.status);
+            statusField.render(response.status);
+            tags.reload();
 
         });
 
@@ -1388,7 +1360,7 @@ var tags = {
     selectTag: function(idTag, el) {
         $('.tag_block').removeClass('success');
         el.addClass('success');
-        
+
         tags.TagForm.render(idTag);
 
     },
@@ -1400,7 +1372,7 @@ var tags = {
             sendRequest('tag/save', {form: data, id_project: idSelectedProject}, function(response) {
                 statusField.render(response.status);
                 tags.reload();
-                
+
             });
         },
         render: function(idTag) {
@@ -1448,6 +1420,7 @@ var tags = {
         tags.TagForm.render();
     }
 };
+
 </script>
         <!-- /end -->
 
