@@ -162,12 +162,12 @@ class Bugmanager
      *
      * Edits project if $idProject was specified
      *
-     * @param array $arr
+     * @param string $name
      * @param int   $idProject
      *
      * @return int|bool False on error
      */
-    public function saveProject($arr, $idProject = null)
+    public function saveProject($name, $idProject = null)
     {
         if (is_null($idProject)) {
             $sth = $this->dbh->prepare('INSERT INTO `project` (`name`) VALUES(?)');
@@ -175,7 +175,7 @@ class Bugmanager
             $sth = $this->dbh->prepare('UPDATE `project` SET `name` = ? WHERE `id_project` = ?');
         }
 
-        $sth->bindParam(1, $arr['name'], PDO::PARAM_STR);
+        $sth->bindParam(1, $name, PDO::PARAM_STR);
 
         if (is_null($idProject)) {
             $sth->execute();

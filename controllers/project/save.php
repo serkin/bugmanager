@@ -11,7 +11,7 @@ $app['controllers']['project/save'] = function($app, $request) {
         $result = false;
         $errorMsg = $app['i18n']['errors']['empty_project_name'];
     else:
-        $result = $app['bugmanager']->saveProject($form, $idProject);
+        $result = $app['bugmanager']->saveProject($form['name'], $idProject);
         $error = $app['bugmanager']->getError();
         $errorMsg = $error[2];
     endif;
