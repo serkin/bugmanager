@@ -190,12 +190,12 @@ class Bugmanager
      *
      * Edits project if $idProject was specified
      *
-     * @param array $arr
+     * @param string $name
      * @param int   $idProject
      *
      * @return int|bool False on error
      */
-    public function saveProject($arr, $idProject = null)
+    public function saveProject($name, $idProject = null)
     {
         if (is_null($idProject)) {
             $sth = $this->dbh->prepare('INSERT INTO `project` (`name`) VALUES(?)');
@@ -203,7 +203,7 @@ class Bugmanager
             $sth = $this->dbh->prepare('UPDATE `project` SET `name` = ? WHERE `id_project` = ?');
         }
 
-        $sth->bindParam(1, $arr['name'], PDO::PARAM_STR);
+        $sth->bindParam(1, $name, PDO::PARAM_STR);
 
         if (is_null($idProject)) {
             $sth->execute();
@@ -276,9 +276,10 @@ class Bugmanager
         return $returnValue;
     }
     /**
-     * @param int    $idProject
-     * @param string $code
+     * Saves issue
+     *
      * @param array  $arr
+     * @param int    $idIssue If is not null edit record else insert new
      *
      * @return bool
      */
@@ -289,10 +290,7 @@ class Bugmanager
         $arr['description'] = !empty($arr['description']) ? $arr['description']   : null;
         $arr['type'] = !empty($arr['type'])        ? $arr['type']          : null;
 
-        if (is_null($idIssue)):
-            return $this->insertIssue($arr); else:
-            return $this->updateIssue($arr, $idIssue);
-        endif;
+        return is_null($idIssue) ? $this->insertIssue($arr) : $this->updateIssue($arr, $idIssue);
     }
 
     private function insertIssue($arr)
@@ -653,7 +651,7 @@ $app['controllers']['project/save'] = function($app, $request) {
         $result = false;
         $errorMsg = $app['i18n']['errors']['empty_project_name'];
     else:
-        $result = $app['bugmanager']->saveProject($form, $idProject);
+        $result = $app['bugmanager']->saveProject($form['name'], $idProject);
         $error = $app['bugmanager']->getError();
         $errorMsg = $error[2];
     endif;
