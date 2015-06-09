@@ -49,6 +49,11 @@ class Bugmanager
         $this->dbh->exec('SET NAMES utf8');
     }
 
+    /**
+     * Gets error
+     *
+     * @return array
+     */
     public function getError()
     {
         return $this->dbh->errorInfo();
@@ -74,6 +79,13 @@ class Bugmanager
         return $returnValue;
     }
 
+    /**
+     * Gets all issues from project
+     *
+     * @param int       $idProject
+     * @param string    $status
+     * @return array
+     */
     public function getAllIssuesFromProject($idProject, $status = 'open')
     {
         $sth = $this->dbh->prepare("SELECT * FROM `issue` WHERE `id_project` = ? and `status` = ?");
@@ -101,15 +113,14 @@ class Bugmanager
         return $sth->fetch(PDO::FETCH_ASSOC)['TOTAL'];
     }
 
-    public function getAllUsers()
-    {
-        $sth = $this->dbh->prepare('SELECT * FROM `user`');
 
-        $sth->execute();
-
-        return $sth->fetchAll(PDO::FETCH_ASSOC);
-    }
-
+    /**
+     * Gets all tags from project
+     *
+     * @param int       $idProject
+     * @param string    $status
+     * @return array
+     */
     public function getAllTagsFromProject($idProject, $status = 'open')
     {
         $sth = $this->dbh->prepare('SELECT * FROM `tag` WHERE `id_project` = ? and `status` = ?');
@@ -121,6 +132,12 @@ class Bugmanager
         return $sth->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    /**
+     * Gets information about an issue
+     *
+     * @param int $idIssue
+     * @return array|null
+     */
     public function getIssue($idIssue)
     {
         $sth = $this->dbh->prepare('SELECT * FROM `issue` WHERE `id_issue` = ?');
@@ -131,6 +148,12 @@ class Bugmanager
         return $sth->fetch(PDO::FETCH_ASSOC);
     }
 
+    /**
+     * Gets information about tag
+     *
+     * @param int $idTag
+     * @return array|null
+     */
     public function getTag($idTag)
     {
         $sth = $this->dbh->prepare('SELECT * FROM `tag` WHERE `id_tag` = ?');
@@ -189,6 +212,11 @@ class Bugmanager
         return $returnValue;
     }
 
+    /**
+     * @param int       $idTag
+     * @param string    $status
+     * @return bool
+     */
     public function setTagStatus($idTag, $status)
     {
         $sth = $this->dbh->prepare('UPDATE `tag` SET `status` = ? WHERE `id_tag` = ?');
@@ -199,6 +227,11 @@ class Bugmanager
         return $sth->execute();
     }
 
+    /**
+     * @param int       $idIssue
+     * @param string    $status
+     * @return bool
+     */
     public function setIssuesStatus($idIssue, $status)
     {
         $sth = $this->dbh->prepare('UPDATE `issue` SET `status` = ? WHERE `id_issue` = ?');
@@ -225,6 +258,12 @@ class Bugmanager
         return $sth->execute();
     }
 
+    /**
+     * @param string    $version
+     * @param int       $idProject
+     * @param int|null  $idTag
+     * @return int      Int
+     */
     public function saveTag($version, $idProject, $idTag = null)
     {
         if (is_null($idTag)) {
@@ -251,21 +290,27 @@ class Bugmanager
      * Saves issue
      *
      * @param array  $arr
+     * @param int    $idProject
      * @param int    $idIssue If is not null edit record else insert new
      *
      * @return bool
      */
-    public function saveIssue($arr, $idIssue = null)
+    public function saveIssue($arr, $idProject, $idIssue = null)
     {
-        $arr['id_project'] = !empty($arr['id_project'])  ? $arr['id_project']    : null;
-        $arr['id_tag'] = !empty($arr['id_tag'])      ? $arr['id_tag']        : null;
-        $arr['description'] = !empty($arr['description']) ? $arr['description']   : null;
-        $arr['type'] = !empty($arr['type'])        ? $arr['type']          : null;
 
-        return is_null($idIssue) ? $this->insertIssue($arr) : $this->updateIssue($arr, $idIssue);
+        $arr['id_tag'] = !empty($arr['id_tag']) ? $arr['id_tag'] : null;
+        $arr['description'] = !empty($arr['description']) ? $arr['description'] : null;
+        $arr['type'] = !empty($arr['type']) ? $arr['type'] : null;
+
+        return is_null($idIssue) ? $this->insertIssue($arr, $idProject) : $this->updateIssue($arr, $idIssue);
     }
 
-    private function insertIssue($arr)
+    /**
+     * @param array         $arr
+     * @param int           $idProject
+     * @return bool|string
+     */
+    private function insertIssue($arr, $idProject)
     {
         $sql = '
             INSERT INTO
@@ -278,7 +323,7 @@ class Bugmanager
             VALUES(?, ?, ?, ?)';
         $sth = $this->dbh->prepare($sql);
 
-        $sth->bindParam(1, $arr['id_project'],  PDO::PARAM_INT);
+        $sth->bindParam(1, $idProject,          PDO::PARAM_INT);
         $sth->bindParam(2, $arr['id_tag'],      PDO::PARAM_INT);
         $sth->bindParam(3, $arr['description'], PDO::PARAM_STR);
         $sth->bindParam(4, $arr['type'],        PDO::PARAM_STR);
@@ -288,6 +333,11 @@ class Bugmanager
         return $this->dbh->lastInsertId() ? $this->dbh->lastInsertId() : false;
     }
 
+    /**
+     * @param array $arr
+     * @param int   $idIssue
+     * @return bool
+     */
     private function updateIssue($arr, $idIssue)
     {
         $sql = '
