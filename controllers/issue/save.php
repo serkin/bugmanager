@@ -12,7 +12,7 @@ $app['controllers']['issue/save'] = function($app, $request) {
         $result = false;
         $errorMsg = $app['i18n']['errors']['empty_id_project'];
     else:
-        $result = $app['bugmanager']->saveIssue($arr, $idIssue);
+        $result = $app['bugmanager']->saveIssue($arr,$arr['id_project'], $idIssue);
         $error = $app['bugmanager']->getError();
         $errorMsg = $error[2];
     endif;
