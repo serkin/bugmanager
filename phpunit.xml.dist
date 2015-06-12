@@ -15,7 +15,7 @@
         <var name="db_password" value=""/>
     </php>
     <testsuites>
-        <testsuite name="basic">
+        <testsuite name="unit">
             <directory suffix=".php">tests/unit</directory>
         </testsuite>
         <testsuite name="func">
